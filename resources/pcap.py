@@ -4,6 +4,8 @@ from flask import Response, request, send_file
 from pprint import PrettyPrinter
 pp = PrettyPrinter()
 
+STENO_HEADERS = ['Steno-Limit-Packets', 'Steno-Limit-Bytes']
+
 class Pcap(Resource):
     def get(self, path):
         from tasks import get_stats
@@ -18,28 +20,26 @@ class RawQuery(Resource):
         import os.path
 
         query = request.form.lists()[0][0]
-        pp.pprint("Query: {}".format(query))
-        result = raw_query.apply_async(kwargs={'query': query})
+        headers = {
+                key: value for (key, value) in request.headers.iteritems() if key in STENO_HEADERS }
+
+        result = raw_query.apply_async(kwargs={'query': query, 'headers': headers})
 
         while not result.ready():
             pass
 
-        pp.pprint(result.result)
         if result.successful():
             rc, message = result.result
-            pp.pprint(result)
 
             # Everything is normal
             if rc == 0 and os.path.isfile(message):
                 fname = os.path.basename(message)
-                pp.pprint(fname)
                 rv = send_file(
                         message, 
                         mimetype='application/vnd.tcpdump.pcap',
                         as_attachment=True,
                         attachment_filename=fname
                         )
-                pp.pprint(rv)
                 return rv
 
 

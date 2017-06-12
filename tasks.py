@@ -13,7 +13,7 @@ TASK_STORAGE = '/tmp/docket/pcap'
 app.flask_app.config['TASK_STORAGE_PATH'] = TASK_STORAGE
 
 @celery.task(bind=True)
-def raw_query(self, query, selected_sensors=None):
+def raw_query(self, query, headers={}, selected_sensors=None):
     logger.debug("Begin raw_query")
 
     import subprocess, os, os.path
@@ -36,15 +36,9 @@ def raw_query(self, query, selected_sensors=None):
 
             logger.debug("Processing instance: {}".format(instance['sensor']))
 
-            #rq = requests.Request('POST', url, data=query).prepare()
-            s = requests.Session()
-            r = requests.post(url, data=query, cert=(instance['cert'], instance['key']), verify=instance['ca'])
+            r = requests.post(url, data=query, headers=headers,
+                    cert=(instance['cert'], instance['key']), verify=instance['ca'])
 
-            #r = requests.post(url,
-            #            data=query,
-            #            cert=(instance['cert'], instance['key']),
-            #            verify=instance['ca']
-            #        )
             logger.debug("Error {}: {}".format(r.status_code, r.reason))
 
             # Some error happened
