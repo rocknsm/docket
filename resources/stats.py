@@ -9,7 +9,7 @@ class Stats(Resource):
         while not result.ready():
             pass
 
-        if result.successfull():
+        if result.successful():
             return jsonify(result.result)
         else:
             response = jsonify({'error': 'An unknown error occurred.'})

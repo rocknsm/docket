@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-from flask import Flask
+from flask import Flask, jsonify
 from flask_script import Manager
 from celery import Celery
+
+from common.exceptions import InvalidUsage
 
 import yaml
 import os
@@ -16,6 +18,15 @@ class Application(object):
             self.flask_app.setLevel(logging.DEBUG)
         self._configure_app(config)
         self._set_blueprints()
+        self.register_error_handlers()
+
+    def register_error_handlers(self):
+
+        @self.flask_app.errorhandler(InvalidUsage)
+        def handle_invalid_usage(error):
+            response = jsonify(error.to_dict())
+            response.status_code = error.status_code
+            return response
 
     def celery(self):
         app = self.flask_app
@@ -70,3 +81,5 @@ class Application(object):
 
     def start_app(self):
         self.flask_app.run(debug=self.debug)
+
+

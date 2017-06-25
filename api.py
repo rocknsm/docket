@@ -9,7 +9,7 @@ api_bp = Blueprint('api', __name__)
 api = Api(api_bp)
 
 # Add resources
-api.add_resource(Pcap, '/pcap/<path:path>', defaults={'path': ''} )
+api.add_resource(Pcap, '/pcap/<path:path>')
 api.add_resource(RawQuery, '/query' )
 api.add_resource(Stats, '/stats/', '/stats/<string:sensors>', endpoint='stats')
 
