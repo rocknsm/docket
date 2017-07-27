@@ -1,7 +1,7 @@
 %global _docketdir /opt/rocknsm/docket
 
 Name:           docket
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -51,6 +51,9 @@ cp -a playbooks/. %{buildroot}/%{_rockdir}/playbooks
 %attr(0755, root, root) %{_rockdir}/bin/generate_defaults.sh
 
 %changelog
+* Thu Jul 27 2017 Derek Ditch <derek@rocknsm.io> 0.0.3-1
+- Removed .spec from gitignore (derek@rocknsm.io)
+
 * Thu Jul 27 2017 Derek Ditch <derek@rocknsm.io> 0.0.2-1
 - Initial use of tito to build SRPM
 
