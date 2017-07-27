@@ -1,11 +1,11 @@
 ---
 stenographer_instances:
-    - { host: 127.0.0.1, sensor: sensor-001, port: 1234, key: /etc/stenographer/certs/client_key.pem, cert: /etc/stenographer/certs/client_cert.pem, ca: /etc/stenographer/certs/ca_cert.pem }
+    - { host: 120.0.0.1, sensor: sensor-001, port: 1234, key: /etc/stenographer/certs/client_key.pem, cert: /etc/stenographer/certs/client_cert.pem, ca: /etc/stenographer/certs/ca_cert.pem }
 
 # Flask config values
 DEBUG: true
 TESTING: true
-SECRET_KEY: iGixwzddwewL52nKnsMvBG5hHd6FBaYSpavMaELQ43g=
+SECRET_KEY: CHANGE_THIS_SECRET_KEY_TO_RANDOM_VALUE
 SESSION_COOKIE_NAME: DOCKET_SESSION
 USE_X_SENDFILE: false
 LOGGER_NAME: docket
