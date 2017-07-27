@@ -8,5 +8,5 @@ setup(name='docket',
       author='Derek Ditch',
       author_email='derek@rocknsm.io',
       url='https://github.com/rocknsm/docket/',
-      packages=['distutils', 'distutils.command'],
+      packages=['docket'],
       )
