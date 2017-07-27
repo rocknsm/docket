@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='docket',
-      version='0.1.0',
+      version='0.0.2',
       description='REST API for Google Stenographer',
       author='Derek Ditch',
       author_email='derek@rocknsm.io',
