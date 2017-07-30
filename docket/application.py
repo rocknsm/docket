@@ -61,7 +61,7 @@ class Application(object):
         _config = {}
         if _conf_path:
             self.flask_app.config['APP_CONFIG'] = os.path.join(
-                self.flask_app.root_path, 'conf', ("%s.yaml" % _conf_path))
+                self.flask_app.root_path, '../conf', ("%s.yaml" % _conf_path))
 
             with open(self.flask_app.config['APP_CONFIG']) as f:
                 _config = yaml.load(f.read())
@@ -70,6 +70,7 @@ class Application(object):
             self.flask_app.config.update(_config)
 
         celery_url = self.flask_app.config['CELERY_URL']
+        spool_dir  = self.flask_app.config['SPOOL_DIR']
         # Update file config with environment overrides
         celery_url = env.get('CELERY_URL', celery_url)
 
@@ -78,6 +79,7 @@ class Application(object):
         self.flask_app.config['CELERY_RESULT_BACKEND'] = env.get(
                 'REDIS_URL', celery_url)
         self.flask_app.secret_key = env.get('SECRET_KEY')
+        self.flask_app.spool_dir = env.get('SPOOL_DIR', spool_dir)
 
     def start_app(self):
         self.flask_app.run(debug=self.debug)

@@ -10,45 +10,75 @@ URL:            http://rocknsm.io/
 Source0:        https://github.com/rocknsm/%{name}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
 BuildArch:      noarch
+BuildRequires:  python-devel
+BuildRequires:  systemd
 
 Requires:       python2-flask
 Requires:       python2-flask-restful
+Requires:       python-flask-script
 Requires:       python2-celery
-Requires:       python2-redis
+Requires:       python-redis
 Requires:       python2-tonyg-rfc3339
 
+Requires:       uwsgi
+Requires:       uwsgi-plugin-python
+
+Requires:       wireshark
+Requires:       redis
+
 %description
-ROCK is a collections platform, in the spirit of Network Security Monitoring.
+Docket provides an HTTP API layer for Google Stenographer, allowing RESTful API access to indexed PCAP. Docket is written in Python and uses the veritable Flask framework.
 
 %prep
 %setup -q
 
 %build
-
+# Nothing to do here
 
 %install
 rm -rf %{buildroot}
 DESTDIR=%{buildroot}
 
-#make directories
-mkdir -p %{buildroot}/%{_rockdir}
-mkdir -p %{buildroot}/%{_rockdir}/bin
-mkdir -p %{buildroot}/%{_rockdir}/playbooks
+# make directories
+mkdir -p %{buildroot}/%{_sysconfdir}/rocknsm
+mkdir -p %{buildroot}/%{_docketdir}
+mkdir -p %{buildroot}/%{_docketdir}/conf
+mkdir -p %{buildroot}/%{_docketdir}/docket
+mkdir -p %{buildroot}/%{_tmpfilesdir}
+mkdir -p %{buildroot}/%{_unitdir}
 
-# Install ansible files
-install -p -m 755 bin/deploy_rock.sh %{buildroot}/%{_rockdir}/bin/
-install -p -m 755 bin/generate_defaults.sh %{buildroot}/%{_rockdir}/bin/
-cp -a playbooks/. %{buildroot}/%{_rockdir}/playbooks
+# Install docket files
+cp -a docket/. %{buildroot}/%{_docketdir}/docket/.
+cp -a conf/. %{buildroot}/%{_docketdir}/conf/.
+cp -a systemd/docket-tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/%{name}.conf
+install -p -m 644 systemd/docket-uwsgi.service %{buildroot}/%{_unitdir}/
+install -p -m 644 systemd/docket-uwsgi.socket  %{buildroot}/%{_unitdir}/
+install -p -m 644 systemd/docket-celery.service %{buildroot}/%{_unitdir}/
+install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/%{name}.conf
+install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}/%{_sysconfdir}/rocknsm/
+install -p -m 644 systemd/docket.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/docket
 
 %files
 %defattr(0644, root, root, 0755)
-%{_rockdir}/playbooks/*
+%dir %{_docketdir}/
+%dir %{_docketdir}/conf
+%dir %{_docketdir}/docket
+%dir %{_docketdir}/docket/common
+%dir %{_docketdir}/docket/resources
+%{_docketdir}/*
+%{_docketdir}/conf/*
+%{_docketdir}/docket/*
+%{_docketdir}/docket/common/*
+%{_docketdir}/docket/resources
+
+# Service files
+
+%{_tmpfilesdir}/%{name}.conf
 
 %doc README.md LICENSE
-%config %{_rockdir}/playbooks/ansible.cfg
+%config %{_docketdir}/conf/devel.yaml
 
-%attr(0755, root, root) %{_rockdir}/bin/deploy_rock.sh
-%attr(0755, root, root) %{_rockdir}/bin/generate_defaults.sh
+%attr(0755, root, root) %{_docketdir}/docket_celery.sh
 
 %changelog
 * Thu Jul 27 2017 Derek Ditch <derek@rocknsm.io> 0.0.3-1
@@ -57,8 +87,3 @@ cp -a playbooks/. %{buildroot}/%{_rockdir}/playbooks
 * Thu Jul 27 2017 Derek Ditch <derek@rocknsm.io> 0.0.2-1
 - Initial use of tito to build SRPM
 
-* Thu Jun 08 2017 spartan782 <john.hall7688@hotmail.com> 2.0.5-1
-- 
-Tito files added.
-rock.spec added.
-sign_rpm.sh added. 

@@ -1,6 +1,6 @@
 ---
 stenographer_instances:
-    - { host: 120.0.0.1, sensor: sensor-001, port: 1234, key: /etc/stenographer/certs/client_key.pem, cert: /etc/stenographer/certs/client_cert.pem, ca: /etc/stenographer/certs/ca_cert.pem }
+    - { host: 127.0.0.1, sensor: sensor-001, port: 1234, key: /etc/stenographer/certs/client_key.pem, cert: /etc/stenographer/certs/client_cert.pem, ca: /etc/stenographer/certs/ca_cert.pem }
 
 # Flask config values
 DEBUG: true
@@ -10,5 +10,6 @@ SESSION_COOKIE_NAME: DOCKET_SESSION
 USE_X_SENDFILE: false
 LOGGER_NAME: docket
 CELERY_URL: redis://localhost:6379
+SPOOL_DIR: /var/spool/docket/tmp/
 # This specifies the window +/- of time-based queries in seconds
 TIME_WINDOW: 60

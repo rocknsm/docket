@@ -2,11 +2,10 @@
 Description=Socket for Docket uWSGI app
 
 [Socket]
-ListenStream=/run/docket/docket.socket
+ListenStream=/run/uwsgi/docket.socket
 SocketUser=docket
 SocketGroup=nginx
 SocketMode=0660
-RuntimeDirectory=docket
 
 [Install]
 WantedBy=sockets.target

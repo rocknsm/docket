@@ -3,9 +3,8 @@ Description=Docket uWSGI app
 After=syslog.target
 
 [Service]
-ExecStart=/usr/bin/uwsgi \
-	--init /etc/rocknsm/uwsgi-docket.ini \
-	--socket /run/docket/docket.socket
+ExecStart=/usr/sbin/uwsgi \
+	  --ini /etc/rocknsm/docket-uwsgi.ini
 User=docket
 Group=nginx
 Restart=on-failure
@@ -13,7 +12,7 @@ KillSignal=SIGQUIT
 Type=notify
 StandardError=syslog
 NotifyAccess=all
-RuntimeDirectory=docket
+WorkingDirectory=/opt/rocknsm/docket
 
 [Install]
 WantedBy=multiuser.target
