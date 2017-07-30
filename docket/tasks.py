@@ -111,10 +111,11 @@ def get_stats(self, selected_sensors=None):
                     k, v = line.split()
                     data[k] = int(v)
 
-            ot = data['oldest_timestamp']
-            dt = datetime.utcfromtimestamp(0) + timedelta(microseconds=ot/1000 )
-            data['oldest_timestamp'] = dt.isoformat() + 'Z'
-            #data['oldest_timestamp'] = dt
+            if 'oldest_timestamp' in data:
+                ot = data['oldest_timestamp']
+                dt = datetime.utcfromtimestamp(0) + timedelta(microseconds=ot/1000 )
+                data['oldest_timestamp'] = dt.isoformat() + 'Z'
+
             data['sensor'] = instance['sensor']
 
             datas.append(data)
