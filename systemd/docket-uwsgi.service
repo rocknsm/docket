@@ -1,0 +1,22 @@
+[Unit]
+Description=Docket uWSGI app
+After=syslog.target
+Requires=docket-celery.service
+Requires=docket-uwsgi.socket
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/docket
+ExecStart=/usr/sbin/uwsgi \
+          --ini /etc/rocknsm/docket-uwsgi.ini
+User=docket
+Group=nginx
+Restart=on-failure
+KillSignal=SIGQUIT
+Type=notify
+StandardError=syslog
+NotifyAccess=all
+WorkingDirectory=/opt/rocknsm/docket
+
+[Install]
+WantedBy=multiuser.target
+

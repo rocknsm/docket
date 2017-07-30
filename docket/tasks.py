@@ -8,9 +8,6 @@ from common.utils import is_sequence
 logger = get_task_logger(__name__)
 
 instances = app.flask_app.config['stenographer_instances']
-TASK_STORAGE = '/tmp/docket/pcap'
-
-app.flask_app.config['TASK_STORAGE_PATH'] = TASK_STORAGE
 
 @celery.task(bind=True)
 def raw_query(self, query, headers={}, selected_sensors=None):
@@ -21,7 +18,7 @@ def raw_query(self, query, headers={}, selected_sensors=None):
     error = None
 
     job_path = os.path.join(
-            app.flask_app.config['TASK_STORAGE_PATH'],
+            app.flask_app.config['SPOOL_DIR'],
             self.request.id
         )
     os.mkdir(job_path, 0700)
@@ -64,7 +61,7 @@ def raw_query(self, query, headers={}, selected_sensors=None):
 
         # We have several files, lets merge them
         job_file = os.path.join(job_path, "{}.pcap".format(self.request.id))
-        cmd = ["mergecap", "-F", "pcap", "-w", job_file]
+        cmd = ["/usr/sbin/mergecap", "-F", "pcap", "-w", job_file]
         cmd.extend(outputs)
 
         logger.debug("Calling mergecap as: {}".format(" ".join(cmd)))
@@ -114,10 +111,11 @@ def get_stats(self, selected_sensors=None):
                     k, v = line.split()
                     data[k] = int(v)
 
-            ot = data['oldest_timestamp']
-            dt = datetime.utcfromtimestamp(0) + timedelta(microseconds=ot/1000 )
-            data['oldest_timestamp'] = dt.isoformat() + 'Z'
-            #data['oldest_timestamp'] = dt
+            if 'oldest_timestamp' in data:
+                ot = data['oldest_timestamp']
+                dt = datetime.utcfromtimestamp(0) + timedelta(microseconds=ot/1000 )
+                data['oldest_timestamp'] = dt.isoformat() + 'Z'
+
             data['sensor'] = instance['sensor']
 
             datas.append(data)

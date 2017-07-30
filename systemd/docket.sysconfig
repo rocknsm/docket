@@ -1,0 +1,2 @@
+APP_CONFIG=devel
+SPOOL_DIR=/var/spool/docket/tmp/

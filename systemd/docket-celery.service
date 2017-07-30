@@ -1,0 +1,20 @@
+[Unit]
+Description=Docket uWSGI app
+After=syslog.target
+Wants=redis.service
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/docket
+ExecStart=/usr/bin/celery worker --app manage.celery -l info
+User=docket
+Group=stenographer
+Restart=on-failure
+Type=simple
+StandardError=syslog
+NotifyAccess=all
+WorkingDirectory=/opt/rocknsm/docket/docket
+RuntimeDirectory=docket
+RuntimeDirectoryMode=0700
+
+[Install]
+WantedBy=multiuser.target
