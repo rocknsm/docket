@@ -78,8 +78,6 @@ install -p -m 644 systemd/docket.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig
 %doc README.md LICENSE
 %config %{_docketdir}/conf/devel.yaml
 
-%attr(0755, root, root) %{_docketdir}/docket_celery.sh
-
 %changelog
 * Sun Jul 30 2017 Derek Ditch <derek@rocknsm.io> 0.0.4-1
 - Adds service depndency (derek@rocknsm.io)
