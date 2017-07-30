@@ -1,8 +1,10 @@
 [Unit]
 Description=Docket uWSGI app
 After=syslog.target
+Requires=docket-celery.service
 
 [Service]
+EnvironmentFile=-/etc/sysconfig/docket
 ExecStart=/usr/sbin/uwsgi \
 	  --ini /etc/rocknsm/docket-uwsgi.ini
 User=docket

@@ -1,6 +1,7 @@
 [Unit]
 Description=Docket uWSGI app
 After=syslog.target
+Wants=redis.service
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/docket
