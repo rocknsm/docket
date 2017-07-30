@@ -1,7 +1,7 @@
 %global _docketdir /opt/rocknsm/docket
 
 Name:           docket
-Version:        0.0.4
+Version:        0.0.5
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -100,6 +100,8 @@ exit 0
 %doc contrib/nginx-example.conf
 
 %changelog
+* Sun Jul 30 2017 Derek Ditch <derek@rocknsm.io> 0.0.5-1
+- Fixes for RPM build and systemd dependencies
 * Sun Jul 30 2017 Derek Ditch <derek@rocknsm.io> 0.0.4-1
 - Adds service depndency (derek@rocknsm.io)
 - Adds systemd config and tweaks to RPM spec - Adds tmpfiles.d configuration
