@@ -49,17 +49,18 @@ mkdir -p %{buildroot}/%{_docketdir}/conf
 mkdir -p %{buildroot}/%{_docketdir}/docket
 mkdir -p %{buildroot}/%{_tmpfilesdir}
 mkdir -p %{buildroot}/%{_unitdir}
+mkdir -p %{buildroot}/%{_presetdir}
 
 # Install docket files
 cp -a docket/. %{buildroot}/%{_docketdir}/docket/.
 cp -a conf/. %{buildroot}/%{_docketdir}/conf/.
 cp -a systemd/docket-tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/%{name}.conf
-install -p -m 644 systemd/docket-uwsgi.service %{buildroot}/%{_unitdir}/
-install -p -m 644 systemd/docket-uwsgi.socket  %{buildroot}/%{_unitdir}/
-install -p -m 644 systemd/docket-celery.service %{buildroot}/%{_unitdir}/
-install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/%{name}.conf
-install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}/%{_sysconfdir}/rocknsm/
-install -p -m 644 systemd/docket.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/%{name}
+install -p -m 644 systemd/docket-uwsgi.service %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket-uwsgi.socket  %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket-celery.service %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}%{_tmpfilesdir}/%{name}.conf
+install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/rocknsm/
+install -p -m 644 systemd/docket.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 install -p -m 644 systemd/docket.preset %{buildroot}%{_presetdir}/95-%{name}.preset
 
 %pre
