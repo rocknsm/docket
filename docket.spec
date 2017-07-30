@@ -96,7 +96,8 @@ exit 0
 %{_sysconfdir}/sysconfig/%{name}
 %{_sysconfdir}/rocknsm/docket-uwsgi.ini
 
-%doc README.md LICENSE
+%doc README.md LICENSE 
+%doc contrib/nginx-example.conf
 
 %changelog
 * Sun Jul 30 2017 Derek Ditch <derek@rocknsm.io> 0.0.4-1
