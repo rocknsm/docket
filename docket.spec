@@ -40,7 +40,7 @@ rm -rf %{buildroot}
 DESTDIR=%{buildroot}
 
 # make directories
-mkdir -p %{buildroot}/%{_sysconfdir}/rocknsm
+mkdir -p %{buildroot}/%{_sysconfdir}/{rocknsm,sysconfig}
 mkdir -p %{buildroot}/%{_docketdir}
 mkdir -p %{buildroot}/%{_docketdir}/conf
 mkdir -p %{buildroot}/%{_docketdir}/docket
