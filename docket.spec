@@ -1,7 +1,7 @@
 %global _docketdir /opt/rocknsm/docket
 
 Name:           docket
-Version:        0.0.3
+Version:        0.0.4
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -81,6 +81,13 @@ install -p -m 644 systemd/docket.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig
 %attr(0755, root, root) %{_docketdir}/docket_celery.sh
 
 %changelog
+* Sun Jul 30 2017 Derek Ditch <derek@rocknsm.io> 0.0.4-1
+- Adds service depndency (derek@rocknsm.io)
+- Adds systemd config and tweaks to RPM spec - Adds tmpfiles.d configuration
+  for docket spool dir - Adds service files for celery workers and uwsgi
+  configuration - Adds socket-activation for uwsgi workers - Adds environment
+  file for both systemd services `/etc/sysconfig/docket` (derek@rocknsm.io)
+
 * Thu Jul 27 2017 Derek Ditch <derek@rocknsm.io> 0.0.3-1
 - Removed .spec from gitignore (derek@rocknsm.io)
 
