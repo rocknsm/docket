@@ -1,5 +1,6 @@
 [Unit]
 Description=Socket for Docket uWSGI app
+PartOf=docket-uwsgi.service
 
 [Socket]
 ListenStream=/run/uwsgi/docket.socket
@@ -9,3 +10,4 @@ SocketMode=0660
 
 [Install]
 WantedBy=sockets.target
+
