@@ -7,7 +7,7 @@ Summary:        A Python HTTP API for Google Stenographer
 
 License:        BSD
 URL:            http://rocknsm.io/
-Source0:        https://github.com/rocknsm/%{name}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
+Source0:        https://github.com/rocknsm/%{name}/archive/%{name}-%{version}-1.tar.gz#/%{name}-%{version}.tar.gz
 
 BuildArch:      noarch
 BuildRequires:  python-devel
@@ -61,17 +61,16 @@ install -p -m 644 systemd/docket.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig
 %files
 %defattr(0644, root, root, 0755)
 %dir %{_docketdir}
+%config %{_docketdir}/conf/devel.yaml
 %{_docketdir}/*
 
 # Service files
-
 %{_tmpfilesdir}/%{name}.conf
 %{_unitdir}/*
 %{_sysconfdir}/sysconfig/%{name}
 %{_sysconfdir}/rocknsm/docket-uwsgi.ini
 
 %doc README.md LICENSE
-%config %{_docketdir}/conf/devel.yaml
 
 %changelog
 * Sun Jul 30 2017 Derek Ditch <derek@rocknsm.io> 0.0.4-1
