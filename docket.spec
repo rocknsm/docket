@@ -56,24 +56,19 @@ install -p -m 644 systemd/docket-uwsgi.socket  %{buildroot}/%{_unitdir}/
 install -p -m 644 systemd/docket-celery.service %{buildroot}/%{_unitdir}/
 install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/%{name}.conf
 install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}/%{_sysconfdir}/rocknsm/
-install -p -m 644 systemd/docket.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/docket
+install -p -m 644 systemd/docket.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/%{name}
 
 %files
 %defattr(0644, root, root, 0755)
-%dir %{_docketdir}/
-%dir %{_docketdir}/conf
-%dir %{_docketdir}/docket
-%dir %{_docketdir}/docket/common
-%dir %{_docketdir}/docket/resources
+%dir %{_docketdir}
 %{_docketdir}/*
-%{_docketdir}/conf/*
-%{_docketdir}/docket/*
-%{_docketdir}/docket/common/*
-%{_docketdir}/docket/resources
 
 # Service files
 
 %{_tmpfilesdir}/%{name}.conf
+%{_unitdir}/*
+%{_sysconfdir}/sysconfig/%{name}
+%{_sysconfdir}/rocknsm/docket-uwsgi.ini
 
 %doc README.md LICENSE
 %config %{_docketdir}/conf/devel.yaml
