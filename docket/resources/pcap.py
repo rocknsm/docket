@@ -52,7 +52,7 @@ class Pcap(Resource):
                     [MULTIPLIERS[k] * float(v) for (k, v) in
                         list(mdict.items()) if v is not None]))
 
-    def post(self):
+    def post(self, path=""):
         """
         Support form submission of PCAP query. Supports the following
         query terms.
