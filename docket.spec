@@ -92,6 +92,7 @@ exit 0
 # Service files
 %{_tmpfilesdir}/%{name}.conf
 %{_unitdir}/*
+%{_presetdir}/*
 %{_sysconfdir}/sysconfig/%{name}
 %{_sysconfdir}/rocknsm/docket-uwsgi.ini
 
