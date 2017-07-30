@@ -11,13 +11,16 @@ Source0:        https://github.com/rocknsm/%{name}/archive/%{name}-%{version}-1.
 
 BuildArch:      noarch
 BuildRequires:  python-devel
+%{?systemd_requires}
 BuildRequires:  systemd
+Requires(pre):  shadow-utils
 
 Requires:       python2-flask
 Requires:       python2-flask-restful
 Requires:       python-flask-script
 Requires:       python2-celery
 Requires:       python-redis
+Requires:       python-requests
 Requires:       python2-tonyg-rfc3339
 
 Requires:       uwsgi
@@ -57,6 +60,27 @@ install -p -m 644 systemd/docket-celery.service %{buildroot}/%{_unitdir}/
 install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/%{name}.conf
 install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}/%{_sysconfdir}/rocknsm/
 install -p -m 644 systemd/docket.sysconfig %{buildroot}/%{_sysconfdir}/sysconfig/%{name}
+install -p -m 644 systemd/docket.preset %{buildroot}%{_presetdir}/95-%{name}.preset
+
+%pre
+getent group %{name} >/dev/null || groupadd -r %{name}
+getent passwd USERNAME >/dev/null || \
+    useradd -r -g %{name} -d %{_docketdir} -s /sbin/nologin \
+    -c "System account for Docket services for ROCK NSM" %{name}
+exit 0
+
+%post
+%systemd_post docket-celery.service
+%systemd_post docket-uwsgi.socket
+%systemd_post docket-uwsgi.service
+
+
+%preun
+%systemd_preun docket-celery.service
+
+%postun
+%systemd_postun_with_restart docket-celery.service
+
 
 %files
 %defattr(0644, root, root, 0755)

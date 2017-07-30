@@ -5,7 +5,7 @@ Wants=redis.service
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/docket
-ExecStart=/usr/bin/celery --app manage.celery -l info
+ExecStart=/usr/bin/celery worker --app manage.celery -l info
 User=docket
 Group=stenographer
 Restart=on-failure
