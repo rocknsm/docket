@@ -13,8 +13,6 @@ Type=simple
 StandardError=syslog
 NotifyAccess=all
 WorkingDirectory=/opt/rocknsm/docket/docket
-RuntimeDirectory=docket
-RuntimeDirectoryMode=0700
 
 [Install]
 WantedBy=multiuser.target
