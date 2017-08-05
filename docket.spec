@@ -65,6 +65,8 @@ install -p -m 644 systemd/docket.preset %{buildroot}%{_presetdir}/95-%{name}.pre
 install -d -m 0755 %{buildroot}/run/%{name}/
 install -d -m 0755 %{buildroot}%{_localstatedir}/spool/%{name}/
 
+touch %{buildroot}/run/%{name}/%{name}.socket
+
 %pre
 getent group %{name} >/dev/null || groupadd -r %{name}
 getent passwd USERNAME >/dev/null || \
@@ -100,13 +102,15 @@ exit 0
 %dir %{_localstatedir}/spool/%{name}/
 %attr(-,docket,docket) %{_localstatedir}/spool/%{name}/
 
+# Add the systemd socket so it's removed on uninstall
+%ghost /run/%{name}/%{name}.socket
+
 %doc README.md LICENSE 
 %doc contrib/nginx-example.conf
 
 %changelog
 * Sat Aug 05 2017 Derek Ditch <derek@rocknsm.io> 0.0.7-1
 - Fixes typo in logic (derek@rocknsm.io)
-
 * Sat Aug 05 2017 Derek Ditch <derek@rocknsm.io> 0.0.6-1
 - Adds HTTP POST API supporting form-encoded and json-encoded requests
 - Fixes several bugs in error handling and data parsing
@@ -118,10 +122,8 @@ exit 0
   for docket spool dir - Adds service files for celery workers and uwsgi
   configuration - Adds socket-activation for uwsgi workers - Adds environment
   file for both systemd services `/etc/sysconfig/docket` (derek@rocknsm.io)
-
 * Thu Jul 27 2017 Derek Ditch <derek@rocknsm.io> 0.0.3-1
 - Removed .spec from gitignore (derek@rocknsm.io)
-
 * Thu Jul 27 2017 Derek Ditch <derek@rocknsm.io> 0.0.2-1
 - Initial use of tito to build SRPM
 
