@@ -1,12 +1,16 @@
 [Unit]
 Description=Socket for Docket uWSGI app
-PartOf=docket-uwsgi.service
+PartOf=docket.service
 
 [Socket]
-ListenStream=/run/uwsgi/docket.socket
+ListenStream=%t/docket.socket
 SocketUser=docket
 SocketGroup=nginx
 SocketMode=0660
+User=docket
+Group=nginx
+RuntimeDirectory=docket
+RuntimeDirectoryMode=0750
 
 [Install]
 WantedBy=sockets.target

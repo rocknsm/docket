@@ -1,1 +1,1 @@
-enable docket-uwsgi.socket
+enable docket.socket

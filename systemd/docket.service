@@ -2,7 +2,7 @@
 Description=Docket uWSGI app
 After=syslog.target
 Requires=docket-celery.service
-Requires=docket-uwsgi.socket
+Requires=docket.socket
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/docket

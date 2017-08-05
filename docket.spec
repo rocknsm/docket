@@ -54,9 +54,8 @@ mkdir -p %{buildroot}/%{_presetdir}
 # Install docket files
 cp -a docket/. %{buildroot}/%{_docketdir}/docket/.
 cp -a conf/. %{buildroot}/%{_docketdir}/conf/.
-cp -a systemd/docket-tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/%{name}.conf
-install -p -m 644 systemd/docket-uwsgi.service %{buildroot}%{_unitdir}/
-install -p -m 644 systemd/docket-uwsgi.socket  %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket.service %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket.socket  %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket-celery.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}%{_tmpfilesdir}/%{name}.conf
 install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/rocknsm/
@@ -71,17 +70,13 @@ getent passwd USERNAME >/dev/null || \
 exit 0
 
 %post
-%systemd_post docket-celery.service
-%systemd_post docket-uwsgi.socket
-%systemd_post docket-uwsgi.service
-
+%systemd_post docket.socket docket.service docket-celery.service
 
 %preun
-%systemd_preun docket-celery.service
+%systemd_preun docket.socket docket.service docket-celery.service
 
 %postun
-%systemd_postun_with_restart docket-celery.service
-
+%systemd_postun_with_restart docket.socket docket.service docket-celery.service
 
 %files
 %defattr(0644, root, root, 0755)
