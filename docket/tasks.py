@@ -30,7 +30,7 @@ def raw_query(self, query, headers={}, selected_sensors=None):
         if (selected_sensors is None or
             ( is_sequence(selected_sensors) and
               instance['sensor'] in selected_sensors ) or
-            ( !is_sequence(selected_sensors) and
+            ( not is_sequence(selected_sensors) and
               instance['sensor'] == selected_sensors )):
             url = "https://%s:%i/query" % (
                    instance['host'], instance['port'])
