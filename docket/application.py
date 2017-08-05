@@ -3,7 +3,7 @@ from flask import Flask, jsonify
 from flask_script import Manager
 from celery import Celery
 
-from common.exceptions import InvalidUsage
+from common.exceptions import HTTPException
 
 import yaml
 import os
@@ -22,7 +22,7 @@ class Application(object):
 
     def register_error_handlers(self):
 
-        @self.flask_app.errorhandler(InvalidUsage)
+        @self.flask_app.errorhandler(HTTPException)
         def handle_invalid_usage(error):
             response = jsonify(error.to_dict())
             response.status_code = error.status_code

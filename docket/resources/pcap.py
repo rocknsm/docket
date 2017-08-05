@@ -1,9 +1,10 @@
 from flask_restful import Resource
-from flask import Response, request, send_file, abort
+from flask import Response, request, send_file
 from datetime import datetime
+import os.path
 import re
 
-from common.exceptions import InvalidUsage
+from common.exceptions import HTTPException
 
 STENO_HEADERS = ['Steno-Limit-Packets', 'Steno-Limit-Bytes']
 
@@ -35,28 +36,71 @@ MULTIPLIERS = dict([
     ('micros',  0.000001),
 ])
 
-class Pcap(Resource):
-    def _parseDuration(self, s):
-        from flask import current_app
-        logger = current_app.logger
-        from datetime import timedelta
+def ceildiv(a, b):
+    return int(-(-a // b))
 
-        for timefmt in TIMEFORMATS:
-            logger.debug("timefmt is {}".format(timefmt))
-            match = re.match(r'\s*' + timefmt + r'\s*$', s, re.I)
-            logger.debug("Match is {}".format(match))
-            if match and match.group(0).strip():
-                mdict = match.groupdict()
-                logger.debug("mdict is {}".format(mdict))
-                return timedelta(seconds=sum(
-                    [MULTIPLIERS[k] * float(v) for (k, v) in
-                        list(mdict.items()) if v is not None]))
+def _parseDuration(s):
+    from flask import current_app
+    logger = current_app.logger
+    from datetime import timedelta
 
-    def post(self, path=""):
+    for timefmt in TIMEFORMATS:
+        logger.debug("timefmt is {}".format(timefmt))
+        match = re.match(r'\s*' + timefmt + r'\s*$', s, re.I)
+        logger.debug("Match is {}".format(match))
+        if match and match.group(0).strip():
+    	    mdict = match.groupdict()
+    	    logger.debug("mdict is {}".format(mdict))
+    	    return timedelta(seconds=sum(
+    	        [MULTIPLIERS[k] * float(v) for (k, v) in
+    	    	list(mdict.items()) if v is not None]))
+
+
+class PcapApi(Resource):
+    def post(self):
         """
         Support form submission of PCAP query. Supports the following
-        query terms.
+        query terms translated to stenographer API.
+        All terms are AND'd together to refine the query. The API does 
+        not currently support OR semantics
+        Time intervals may be expressed with any combination of: h or m
 
+        # Query for a single host, net, or port
+        host=1.2.3.4   -> 'host 1.2.3.4'
+	net=1.2.3.0/24 -> 'net 1.2.3.0/24'       
+        port=80        -> 'port 80'
+
+        # Supports duplicate field names for host, net, port
+        host=1.2.3.4   -> 'host 1.2.3.4 and host 4.5.6.7'
+        host=4.5.6.7         
+
+        # Query by protocol number
+        proto=6        -> 'ip proto 6'
+        
+        # Query by common protocol name for tcp, udp, icmp
+        proto-name=tcp -> 'tcp'
+
+        # Combine protocol and port
+        proto-name=tcp -> 'tcp and port 80'
+        port=80
+
+        # Query by time, requires RFC3339 datetime string specified in UTC
+        before=2017-04-30T13:26:43Z -> 'before 2017-04-30T13:26:43Z'
+        before=2017-04-30T00:00:00Z -> 'before 2017-04-30T00:00:00Z'
+
+	# Query by relative time expressed in combination of hours and minutes
+        before-ago=45m  -> 'before 45m ago'
+        after-ago=3h    -> 'after 180m ago'
+        after-ago=3h30m -> 'after 210m ago'
+        after-ago=3.5h  -> 'after 210m ago'
+
+	Example query using curl:
+	```
+        $ curl -s -XPOST localhost:8080/api/ -d 'host=192.168.254.201' -d 'proto-name=udp' -d 'port=53' -d 'after-ago=3m' | tcpdump -nr -
+        reading from file -, link-type EN10MB (Ethernet)
+        15:38:00.311222 IP 192.168.254.201.31176 > 205.251.197.49.domain: 52414% [1au] A? ping.chartbeat.net. (47)
+        15:38:00.345042 IP 205.251.197.49.domain > 192.168.254.201.31176: 52414*- 8/4/1 A 54.243.249.85, A 54.225.163.178, ...
+        ```
         """
         from flask import current_app
         logger = current_app.logger
@@ -65,13 +109,13 @@ class Pcap(Resource):
         from flask_restful import reqparse
         parser = reqparse.RequestParser()
 
-        parser.add_argument('sensor', action='append',
+        parser.add_argument('sensor', action='append', default=[], store_missing=True,
                 help='Name of sensors to query, matches sensor names in docket config (accepts multiple values)')
-        parser.add_argument('host', action='append',
+        parser.add_argument('host', action='append', default=[], store_missing=True,
                 help='Single IP address (accepts multiple values)')
-        parser.add_argument('net', action='append',
+        parser.add_argument('net', action='append', default=[], store_missing=True,
                 help='IP network with CIDR mask (accepts multiple values)')
-        parser.add_argument('port', action='append', 
+        parser.add_argument('port', action='append', default=[], store_missing=True, 
                 help='IP port number (TCP or UDP) (accepts multiple values)')
         parser.add_argument('proto', type=int, help='IP protocol number')
         parser.add_argument('proto-name', help='One of: TCP, UDP, or ICMP')
@@ -81,18 +125,30 @@ class Pcap(Resource):
         parser.add_argument('after', 
                 type=lambda x: datetime.strptime(x,'%Y-%m-%dT%H:%M:%SZ'),
                 help='Datetime expressed as UTC RFC3339 string')
-        parser.add_argument('before_ago', 
-                help='Time duration expressed in hours (h), minutes (m), seconds (s), millis (ms), or micros (us)')
-        parser.add_argument('after_ago', 
-                help='Time duration expressed in hours (h), minutes (m), seconds (s), millis (ms), or micros (us)')
+        parser.add_argument('before-ago', 
+                help='Time duration expressed in hours (h) or minutes (m)')
+        parser.add_argument('after-ago', 
+                help='Time duration expressed in hours (h) or minutes (m)')
 
         parser.add_argument('Steno-Limit-Packets', location=['headers', 'values'],
                 help='Limits the number of packets that each stenographer instance will return')
         parser.add_argument('Steno-Limit-Bytes', location=['headers', 'values'],
                 help='Limits the number of bytes that each stenographer instance will return')
 
-        query = parser.parse_args()
+        query = {
+                'host': [],
+                'net' : [],
+                'port': [],
+                'proto': None,
+                'udp': None,
+                'tcp': None,
+                'icmp': None,
+                'before': None,
+                'after': None,
+                }
 
+        query = parser.parse_args()
+        
         # Build the query string
         qry_str = []
         for host in query['host']:
@@ -110,7 +166,7 @@ class Pcap(Resource):
                 _usage = "proto-name: {}".format(
                     [x for x in query.args if x.name == 'proto-name'][0].help
                     )
-                raise InvalidUsage("I'm a teapot.",
+                raise HTTPException(message="I'm a teapot.",
                         payload="USAGE: {}".format(_usage),
                         status_code=418 )
         if query['before']:
@@ -118,13 +174,13 @@ class Pcap(Resource):
         if query['after']:
             qry_str.append('after {}'.format(query['after']))
         if query['before-ago']:
-            dur = self._parseDuration(arg)
+            dur = _parseDuration(query['before-ago'])
             if dur is not None:
-                qry_str.append('before {}s ago'.format(dur.total_seconds()))
+                qry_str.append('before {:d}m ago'.format(ceildiv(dur.total_seconds(),60)))
         if query['after-ago']:
-            dur = self._parseDuration(arg)
+            dur = _parseDuration(query['after-ago'])
             if dur is not None:
-                qry_str.append('after {}s ago'.format(dur.total_seconds()))
+                qry_str.append('after {:d}m ago'.format(ceildiv(dur.total_seconds(),60)))
  
 
         _query = " and ".join(qry_str)
@@ -149,11 +205,14 @@ class Pcap(Resource):
                         )
                     return rv
                 else:
-                    abort(404, message="Response file not found")
+                    HTTPException(message="Response file not found", status_code=404)
             else:
                 # Something failed
-                abort(500, message="RC: {}  Message: {}".format(rc, message))
+                HTTPException(message="RC: {}  Message: {}".format(rc, message), status_code=500)
 
+
+
+class PcapUri(Resource):
     def get(self, path):
         _usage = """
         USAGE:
@@ -173,10 +232,17 @@ class Pcap(Resource):
         /before/2017-04-30/ -> 'before 2017-04-30T00:00:00Z'
         /before/2017-04-30T13:26:43Z/ -> 'before 2017-04-30T13:26:43Z'
         /before/45m/ -> 'before 45m ago'
-        /after/3h/ -> 'after 3h ago'
-        /after/3h30m/ -> 'after 3h30m ago'
-        /after/3.5h/ -> 'after 3h30m ago'
+        /after/3h/ -> 'after 180m ago'
+        /after/3h30m/ -> 'after 210m ago'
+        /after/3.5h/ -> 'after 210m ago'
 
+        Example query using curl
+	```
+ 	$ curl -s localhost:8080/pcap/host/192.168.254.201/port/53/udp/after/3m/ | tcpdump -nr -
+	reading from file -, link-type EN10MB (Ethernet)
+	15:38:00.311222 IP 192.168.254.201.31176 > 205.251.197.49.domain: 52414% [1au] A? ping.chartbeat.net. (47)
+	15:38:00.345042 IP 205.251.197.49.domain > 192.168.254.201.31176: 52414*- 8/4/1 A 54.243.249.85, A 54.225.163.178, ...
+	```
         """
         from flask import current_app
         logger = current_app.logger
@@ -214,7 +280,7 @@ class Pcap(Resource):
                     query[arg.lower()] = True
                     state = None
                 else:
-                    raise InvalidUsage("I'm a teapot.",
+                    raise HTTPException("I'm a teapot.",
                             payload="{}".format(_usage),
                             status_code=418 )
             elif state in ["HOST", "PORT", "PROTO"]:
@@ -231,10 +297,10 @@ class Pcap(Resource):
             elif state in ["BEFORE", "AFTER"]:
                 # Test if this is indicating a relative time
                 # Match on h, m, s, ms, us 
-                dur = self._parseDuration(arg)
+                dur = _parseDuration(arg)
                 if dur is not None:
                     logger.debug("Duration is: {}".format(dur.total_seconds()))
-                    query[state.lower()] = "{}s ago".format(dur.total_seconds())
+                    query[state.lower()] = "{:d}m ago".format(ceildiv(dur.total_seconds(),60))
                 else:
                     try:
                         dt = rfc3339.parse_datetime(arg).replace(tzinfo=None)
@@ -294,10 +360,10 @@ class Pcap(Resource):
                         )
                     return rv
                 else:
-                    abort(404, message="Response file not found")
+                    HTTPException(message="Response file not found", status_code=404)
             else:
                 # Something failed
-                abort(500, message="RC: {}  Message: {}".format(rc, message))
+                HTTPException(message="RC: {}  Message: {}".format(rc, message), status_code=500)
 
 class RawQuery(Resource):
     def post(self):
@@ -330,5 +396,8 @@ class RawQuery(Resource):
                         attachment_filename=fname
                         )
                 return rv
-
-
+            else:
+                HTTPException(message="Response file not found", status_code=404)
+        else:
+            # Something failed
+            HTTPException(message="RC: {}  Message: {}".format(rc, message), status_code=500)
