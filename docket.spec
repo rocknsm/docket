@@ -62,6 +62,9 @@ install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/rocknsm/
 install -p -m 644 systemd/docket.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 install -p -m 644 systemd/docket.preset %{buildroot}%{_presetdir}/95-%{name}.preset
 
+install -d -m 0755 %{buildroot}/run/%{name}/
+install -d -m 0755 %{buildroot}%{_localstatedir}/spool/%{name}/
+
 %pre
 getent group %{name} >/dev/null || groupadd -r %{name}
 getent passwd USERNAME >/dev/null || \
@@ -90,6 +93,12 @@ exit 0
 %{_presetdir}/*
 %{_sysconfdir}/sysconfig/%{name}
 %{_sysconfdir}/rocknsm/docket-uwsgi.ini
+
+# Runtime dirs
+%dir /run/%{name}/
+%attr(-,docket,docket) /run/%{name}/
+%dir %{_localstatedir}/spool/%{name}/
+%attr(-,docket,docket) %{_localstatedir}/spool/%{name}/
 
 %doc README.md LICENSE 
 %doc contrib/nginx-example.conf
