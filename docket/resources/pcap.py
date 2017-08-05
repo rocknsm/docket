@@ -94,12 +94,21 @@ class PcapApi(Resource):
         after-ago=3h30m -> 'after 210m ago'
         after-ago=3.5h  -> 'after 210m ago'
 
-	Example query using curl:
+	Example query using curl (form-encoded):
 	```
         $ curl -s -XPOST localhost:8080/api/ -d 'host=192.168.254.201' -d 'proto-name=udp' -d 'port=53' -d 'after-ago=3m' | tcpdump -nr -
         reading from file -, link-type EN10MB (Ethernet)
-        15:38:00.311222 IP 192.168.254.201.31176 > 205.251.197.49.domain: 52414% [1au] A? ping.chartbeat.net. (47)
-        15:38:00.345042 IP 205.251.197.49.domain > 192.168.254.201.31176: 52414*- 8/4/1 A 54.243.249.85, A 54.225.163.178, ...
+        15:38:00.311222 IP 192.168.254.201.31176 > 205.251.197.49.domain: 52414% [1au] A? ping.example.net. (47)
+        15:38:00.345042 IP 205.251.197.49.domain > 192.168.254.201.31176: 52414*- 8/4/1 A 198.18.249.85, A 198.18.163.178, ...
+        ```
+
+        This interface also supports JSON-encoded queries (requires content-type):
+        ```
+        curl -s -XPOST localhost:8080/api/ -H 'Content-Type: application/json' -d '
+        { "host": "192.168.254.201", "proto-name": "udp", "port": 53, "after-ago": "3m" }' | tcpdump -nr -
+        reading from file -, link-type EN10MB (Ethernet)
+        16:16:32.700658 IP 192.168.254.201.50169 > 205.251.195.137.domain: 27094% [1au] A? ping.example.net. (47)
+        16:16:32.759907 IP 205.251.195.137.domain > 192.168.254.201.50169: 27094*- 8/4/1 A 198.18.209.234, A 198.18.232.30, ... 
         ```
         """
         from flask import current_app
@@ -240,8 +249,8 @@ class PcapUri(Resource):
 	```
  	$ curl -s localhost:8080/pcap/host/192.168.254.201/port/53/udp/after/3m/ | tcpdump -nr -
 	reading from file -, link-type EN10MB (Ethernet)
-	15:38:00.311222 IP 192.168.254.201.31176 > 205.251.197.49.domain: 52414% [1au] A? ping.chartbeat.net. (47)
-	15:38:00.345042 IP 205.251.197.49.domain > 192.168.254.201.31176: 52414*- 8/4/1 A 54.243.249.85, A 54.225.163.178, ...
+	15:38:00.311222 IP 192.168.254.201.31176 > 205.251.197.49.domain: 52414% [1au] A? ping.example.net. (47)
+	15:38:00.345042 IP 205.251.197.49.domain > 192.168.254.201.31176: 52414*- 8/4/1 A 198.18.249.85, A 198.18.163.178, ...
 	```
         """
         from flask import current_app
