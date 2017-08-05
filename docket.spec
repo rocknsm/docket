@@ -1,7 +1,7 @@
 %global _docketdir /opt/rocknsm/docket
 
 Name:           docket
-Version:        0.0.7
+Version:        0.0.8
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -109,6 +109,14 @@ exit 0
 %doc contrib/nginx-example.conf
 
 %changelog
+* Sat Aug 05 2017 Derek Ditch <derek@rocknsm.io> 0.0.8-1
+- Adds socket to package for autoremoval (derek@rocknsm.io)
+- Fixes several discrepancies with systemd socket activation vs uwsgi
+  (derek@rocknsm.io)
+- Some cleanup with runtime dirs (derek@rocknsm.io)
+- Cleans up systemd service files, renames main service to `docket.service`.
+  (derek@rocknsm.io)
+
 * Sat Aug 05 2017 Derek Ditch <derek@rocknsm.io> 0.0.7-1
 - Fixes typo in logic (derek@rocknsm.io)
 * Sat Aug 05 2017 Derek Ditch <derek@rocknsm.io> 0.0.6-1
