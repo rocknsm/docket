@@ -12,6 +12,7 @@ instances = app.flask_app.config['stenographer_instances']
 @celery.task(bind=True)
 def raw_query(self, query, headers={}, selected_sensors=None):
     logger.debug("Begin raw_query")
+    logger.info("Query: {}".format(query))
 
     import subprocess, os, os.path
     datas = []
@@ -24,10 +25,13 @@ def raw_query(self, query, headers={}, selected_sensors=None):
     os.mkdir(job_path, 0700)
 
     outputs = []
+    # This could feasibily be done in parallel
     for instance in instances:
         if (selected_sensors is None or
             ( is_sequence(selected_sensors) and
-              instance['sensor'] in selected_sensors )):
+              instance['sensor'] in selected_sensors ) or
+            ( !is_sequence(selected_sensors) and
+              instance['sensor'] == selected_sensors )):
             url = "https://%s:%i/query" % (
                    instance['host'], instance['port'])
 
