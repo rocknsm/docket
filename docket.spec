@@ -1,7 +1,7 @@
 %global _docketdir /opt/rocknsm/docket
 
 Name:           docket
-Version:        0.0.5
+Version:        0.0.6
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -100,6 +100,9 @@ exit 0
 %doc contrib/nginx-example.conf
 
 %changelog
+* Sat Aug 05 2017 Derek Ditch <derek@rocknsm.io> 0.0.6-1
+- Adds HTTP POST API supporting form-encoded and json-encoded requests
+- Fixes several bugs in error handling and data parsing
 * Sun Jul 30 2017 Derek Ditch <derek@rocknsm.io> 0.0.5-1
 - Fixes for RPM build and systemd dependencies
 * Sun Jul 30 2017 Derek Ditch <derek@rocknsm.io> 0.0.4-1
