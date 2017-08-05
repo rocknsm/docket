@@ -110,7 +110,7 @@ exit 0
 
 %changelog
 * Sat Aug 05 2017 Derek Ditch <derek@rocknsm.io> 0.0.10-1
-- 
+- Accidentally left blank
 
 * Sat Aug 05 2017 Derek Ditch <derek@rocknsm.io> 0.0.9-1
 - Updated socket path in nginx example (derek@rocknsm.io)
