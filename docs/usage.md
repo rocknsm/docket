@@ -1,5 +1,7 @@
 # Usage
 
+[Back to top](README.md)
+
 **Table of Contents**
 - [GET queries](#get)
 - [POST queries](#post)
