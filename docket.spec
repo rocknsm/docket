@@ -1,7 +1,7 @@
 %global _docketdir /opt/rocknsm/docket
 
 Name:           docket
-Version:        0.0.13
+Version:        0.0.14
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -109,6 +109,9 @@ exit 0
 %doc contrib/nginx-example.conf
 
 %changelog
+* Sun Aug 06 2017 Derek Ditch <derek@rocknsm.io> 0.0.14-1
+- Add docs dir to documentation (derek@rocknsm.io)
+
 * Sun Aug 06 2017 Derek Ditch <derek@rocknsm.io> 0.0.13-1
 - Changed location of anchors to fix formatting
   (dcode@users.noreply.github.com)
