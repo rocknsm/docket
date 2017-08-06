@@ -1,7 +1,7 @@
 %global _docketdir /opt/rocknsm/docket
 
 Name:           docket
-Version:        0.0.11
+Version:        0.0.12
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -109,6 +109,10 @@ exit 0
 %doc contrib/nginx-example.conf
 
 %changelog
+* Sun Aug 06 2017 Derek Ditch <derek@rocknsm.io> 0.0.12-1
+- Restructured the documentation slightly (derek@rocknsm.io)
+- Added docs and tweaked default config (derek@rocknsm.io)
+
 * Sat Aug 05 2017 Derek Ditch <derek@rocknsm.io> 0.0.11-1
 - Nothing to see here (derek@rocknsm.io)
 - Added vagrant to gitignore (derek@rocknsm.io)
