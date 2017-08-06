@@ -1,3 +1,4 @@
+
 # Usage
 
 [Back to top](README.md)
@@ -7,8 +8,10 @@
 - [POST queries](#post)
 - [Sensor Stats](#stats)
 
-<a name="get" />
+
 ## HTTP GET URI-based query
+
+<a name="get" />
 If you want to generate links to facilitate "click-to-PCAP" functionality or you
 just want shorthand usage with curl, this is the interface for you. Docket
 supports arbitrary GET queries using following translations to the Stenographer
@@ -44,9 +47,9 @@ reading from file -, link-type EN10MB (Ethernet)
 15:38:00.345042 IP 205.251.197.49.domain > 192.168.254.201.31176: 52414*- 8/4/1 A 198.18.249.85, A 198.18.163.178, ...
 ```
 
-<a name="post" />
 ## POST Query API
 
+<a name="post" />
 If you're developing web forms like the provided one or interacting via a web
 service, this is probably how you want to interact with Docket. It supports the
 following query terms translated to stenographer API. All terms are AND'd
@@ -98,9 +101,10 @@ reading from file -, link-type EN10MB (Ethernet)
 16:16:32.759907 IP 205.251.195.137.domain > 192.168.254.201.50169: 27094*- 8/4/1 A 198.18.209.234, A 198.18.232.30, ...
 ```
 
-<a name="stats" />
+
 ## HTTP Stats Interface
 
+<a name="stats" />
 Finally, Docket exposes the stats API of Stenographer. This
 is helpful to get some metadata about the health of each
 configured sensor, such as the oldest PCAP on disk, how many
