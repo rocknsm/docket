@@ -105,7 +105,7 @@ exit 0
 # Add the systemd socket so it's removed on uninstall
 %ghost /run/%{name}/%{name}.socket
 
-%doc README.md LICENSE 
+%doc README.md LICENSE docs/
 %doc contrib/nginx-example.conf
 
 %changelog
