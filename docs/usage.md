@@ -4,14 +4,13 @@
 [Back to top](README.md)
 
 **Table of Contents**
-- [GET queries](#get)
-- [POST queries](#post)
-- [Sensor Stats](#stats)
-
+- [GET-style queries](#http-get-uri-based-query)
+- [POST queries](#post-query-api) (form or json encoded)
+- [Sensor Stats](#http-stats-interface)
+- [stenoread compatibility](#stenoread-compatibility)
 
 ## HTTP GET URI-based query
 
-<a name="get" />
 If you want to generate links to facilitate "click-to-PCAP" functionality or you
 just want shorthand usage with curl, this is the interface for you. Docket
 supports arbitrary GET queries using following translations to the Stenographer
@@ -148,3 +147,22 @@ curl localhost:8080/stats/
   }
 ]
 ```
+
+## Stenoread compatibility
+
+As a final note, the very first interface to Docket that we developed was to
+make it compatible with the current `stenoread` query interface. This made it
+easier to test development and as a side effect, allowed stenoread to query
+multiple backend hosts. Unfortunately, Docket doesn't currently run over TLS,
+so you have to do some wizardry with the nginx front-end to provide the TLS
+layer. In a future release, perhaps we can make this more seamless, but if you
+wanted to use this I wanted to note the high-level things to do. Currently the
+details are left as an exercise to the reader.
+
+1. Modify `/etc/stenographer/config` on the system running `stenoread` to point
+to the host and port Docket is running on.
+2. Configure TLS in nginx using a server cert signed by the same CA that the
+Stenographer client cert uses.
+3. Accept client cert authentication in nginx.
+4. ...
+5. Profit! and run queries via the `/query` API!

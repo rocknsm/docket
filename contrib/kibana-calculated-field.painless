@@ -1,0 +1,6 @@
+def api="http://127.0.0.1:8080/pcap"
+if (doc['@meta.type'] == 'network') {
+return (api + '/host/' + doc['@meta.orig_host'] + '/host/' + doc['@meta.resp_host']);
+} else {
+return "";
+}

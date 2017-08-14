@@ -2,6 +2,11 @@
 
 [Back to top](README.md)
 
+**Table of Contents**
+- [Installation](#install)
+- [Configuration](#configuration)
+- [Verify it works](#verify-it-works)
+
 ## Install
 
 **Development Version**. We push development packages to the [Fedora COPR build service](https://copr.fedorainfracloud.org/coprs/g/rocknsm/rocknsm-2.1/). If you go to the main page, there are package repositories for both CentOS 7 and Fedora 26. (ROCK officially only supports CentOS 7, but it was easy enough to build for both platforms.

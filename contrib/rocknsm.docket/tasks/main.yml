@@ -1,0 +1,15 @@
+---
+# tasks file for rocknsm.docket
+
+# Install packages
+
+# Ensure `stenographer` and `nginx` groups exists
+
+# Configure docket app settings
+
+# Generate/copy x509 client cert/keys and CA certs
+- include: crypto.yml
+
+# Configure nginx settings
+
+# Enable / Activate Services

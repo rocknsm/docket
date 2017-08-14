@@ -1,0 +1,30 @@
+---
+# defaults file for rocknsm.docket
+ansible_cache: /tmp/ansible_cache
+
+# Application config
+docket_debug: false
+docket_testing: false
+docket_secret: "{{ lookup('password', '/dev/null chars=letters,digits length=64') }}"
+docket_session_cookie: DOCKET_SESSION
+docket_sendfile: false
+docket_logger: docket
+docket_celery_url: redis://localhost:6379
+docket_spool_dir: /var/spool/docket/
+
+# Vars to generate keys/certs
+docket_x509_dir: /etc/rocknsm/certs
+docket_x509_key: "{{docket_x509_dir}}/docket_{{ ansible_default_ipv4.address }}_key.pem"
+docket_x509_cert: "{{docket_x509_dir}}/docket_{{ ansible_default_ipv4.address }}_cert.pem"
+docket_x509_cn: "{{ ansible_hostname }}_docket"
+docket_x509_o: Stenographer
+docket_x509_c: XX
+
+# These should be overridden by host-specific vars
+steno_host: "{{ansible_default_ipv4.address}}"
+steno_sensor: "{{ansible_hostname}}"
+steno_ports:
+  - 1234
+steno_certs_dir: /etc/stenographer/certs
+steno_ca_cert: "{{steno_certs_dir}}/ca_cert.pem"
+steno_ca_key:  "{{steno_certs_dir}}/ca_key.pem"

@@ -1,0 +1,106 @@
+---
+# tasks file for rocknsm.docket
+
+# Install packages
+
+# Ensure `stenographer` and `nginx` groups exists
+
+# Configure docket app settings
+- name: Ensure ansible_cache dir exists
+  file:
+    path: "{{ ansible_cache }}"
+    state: directory
+    mode: 0700
+
+# Generate/copy x509 client cert/keys and CA certs
+# Use new openssl module in ansible 2.3
+- name: Create docket private key
+  openssl_privatekey:
+    path: "{{docket_x509_key}}"
+    size: 4096
+  when: inventory_hostname in groups['docket']
+
+- name: Check for certificate
+  stat:
+    path: "{{ item.cert }}"
+  register: docket_cert
+  when: inventory_hostname in groups['docket']
+
+- name: Create docket CSR
+  openssl_csr:
+    path: "{{ docket_x509_key }}.csr"
+    privatekey_path: "{{ docket_x509_key }}"
+    commonName: "{{ docket_x509_cn }}"
+    organizationName: "{{ docket_x509_o }}"
+    countryName: "{{ docket_x509_c }}"
+    keyUsage: digitalSignature
+    extendedKeyUsage: clientAuth
+  when:
+    - inventory_hostname in groups['docket']
+    - docket_cert.stat.exists == False
+
+- name: Fetch CSR
+  fetch:
+    src: "{{docket_x509_key}}.csr"
+    dest: "{{ ansible_cache }}/{{inventory_hostname}}.csr"
+  when:
+    - inventory_hostname in groups['docket']
+    - docket_cert.stat.exists == False
+
+- name: Push CSR to stenographer host
+  copy:
+    src: "{{ansible_cache}}/{{hostvars[item].inventory_hostname}}.csr"
+    dest: "{{steno_certs_dir}}/{{hostvars[item].inventory_hostname}}.csr"
+  with_items: groups['docket']
+  when:
+    - inventory_hostname in groups['stenographer']
+    - "{{ hostvars[item].docket_cert.stat.exists == False }}"
+
+- name: Sign certificate signing requests
+  openssl_cert:
+    path: "{{steno_certs_dir}}/docket-{{hostvars[item].inventory_hostname}}_sensor-{{inventory_hostname}}_cert.pem"
+    privatekey_path: "{{steno_ca_key}}"
+    csr_path: "{{steno_certs_dir}}/{{hostvars[item].inventory_hostname}}.csr"
+    provider: selfsigned
+  with_item: groups['docket']
+  when:
+    - inventory_hostname in groups['stenographer']
+    - "{{ hostvars[item].docket_cert.stat.exists == False }}"
+
+- name: Pull certificates back
+  fetch:
+    src: "{{steno_certs_dir}}/docket-{{hostvars[item].inventory_hostname}}_sensor-{{inventory_hostname}}_cert.pem"
+    dest: "{{ansible_cache}}/docket-{{hostvars[item].inventory_hostname}}_sensor-{{inventory_hostname}}_cert.pem"
+  with_items: groups['docket']
+  when:
+    - inventory_hostname in groups['stenographer']
+    - "{{ hostvars[item].docket_cert.stat.exists == False }}"
+
+- name: Pull back CA certificates
+  fetch:
+    src: "{{steno_ca_cert}}"
+    dest: "{{ansible_cache}}/{{inventory_hostname}}_ca_cert.pem"
+  when:
+    - inventory_hostname in groups['stenographer']
+
+- name: Push certificates to docket hosts
+  copy:
+    src: "{{ansible_cache}}/docket-{{inventory_hostname}}_sensor-{{hostvars[item].inventory_hostname}}_cert.pem"
+    dest: "{{docket_x509_dir}}/docket-{{inventory_hostname}}_sensor-{{hostvars[item].inventory_hostname}}_cert.pem"
+  with_items: groups['stenographer']
+  when:
+    - inventory_hostname in groups['docket']
+    - docket_cert.stat.exist == False
+
+- name: Push Stenographer CA certs
+  copy:
+    src: "{{ansible_cache}}/{{hostvars[item].inventory_hostname}}_ca_cert.pem"
+    dest: "{{docket_x509_dir}}/{{hostvars[item].inventory_hostname}}_ca_cert.pem"
+  with_items: groups['stenographer']
+  when:
+    - inventory_hostname in groups['docket']
+
+
+# Configure nginx settings
+
+# Enable / Activate Services

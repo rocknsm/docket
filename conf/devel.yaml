@@ -11,5 +11,3 @@ USE_X_SENDFILE: false
 LOGGER_NAME: docket
 CELERY_URL: redis://localhost:6379
 SPOOL_DIR: /var/spool/docket/
-# This specifies the window +/- of time-based queries in seconds
-TIME_WINDOW: 60
