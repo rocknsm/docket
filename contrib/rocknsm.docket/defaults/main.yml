@@ -2,6 +2,10 @@
 # defaults file for rocknsm.docket
 ansible_cache: /tmp/ansible_cache
 
+rocknsm_conf_dir: /etc/rocknsm
+rocknsm_conf_user: root
+rocknsm_conf_group: root
+
 # Application config
 docket_debug: false
 docket_testing: false
@@ -15,10 +19,11 @@ docket_spool_dir: /var/spool/docket/
 # Vars to generate keys/certs
 docket_x509_dir: /etc/rocknsm/certs
 docket_x509_key: "{{docket_x509_dir}}/docket_{{ ansible_default_ipv4.address }}_key.pem"
-docket_x509_cert: "{{docket_x509_dir}}/docket_{{ ansible_default_ipv4.address }}_cert.pem"
 docket_x509_cn: "{{ ansible_hostname }}_docket"
 docket_x509_o: Stenographer
 docket_x509_c: XX
+docket_x509_user: root
+docket_x509_group: stenographer
 
 # These should be overridden by host-specific vars
 steno_host: "{{ansible_default_ipv4.address}}"

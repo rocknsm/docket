@@ -90,3 +90,6 @@ ENV/
 # Vagrant
 Vagrantfile
 .vagrant
+
+# Random files
+*.bak

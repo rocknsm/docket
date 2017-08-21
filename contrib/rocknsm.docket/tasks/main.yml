@@ -1,9 +1,12 @@
 ---
 # tasks file for rocknsm.docket
 
-# Install packages
 
 # Ensure `stenographer` and `nginx` groups exists
+- include: prereqs.yml
+
+# Install packages
+- include: install.yml
 
 # Configure docket app settings
 
