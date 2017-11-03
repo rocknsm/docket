@@ -9,6 +9,7 @@
 - include: install.yml
 
 # Configure docket app settings
+- include: docket_config.yml
 
 # Generate/copy x509 client cert/keys and CA certs
 - include: crypto.yml

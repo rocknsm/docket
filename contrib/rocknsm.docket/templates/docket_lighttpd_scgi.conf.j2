@@ -1,0 +1,10 @@
+server.modules += ( "mod_scgi" )
+scgi.protocol = "uwsgi"
+scgi.server = (
+  "/" => ((
+    "check-local" => "disable",
+    "x-sendfile": true,
+    "x-sendfile-docroot": ("{{docket_spool_dir}}")
+    "socket": "{{ docket_uwsgi_socket }}"
+  )),
+)

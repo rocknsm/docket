@@ -1,0 +1,10 @@
+---
+- name: docket | configure lighttpd + uwsgi
+  template:
+    src: docket_lighttpd_scgi.conf.j2
+    dest: /etc/lighttpd/conf.d/scgi_docket.conf
+
+- name: docket | configure lighttpd TLS listener
+  template:
+    src: docket_lighttpd_vhost.conf.j2
+    dest: /etc/lighttpd/vhosts.d/docket.conf

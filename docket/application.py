@@ -61,7 +61,7 @@ class Application(object):
         _config = {}
         if _conf_path:
             self.flask_app.config['APP_CONFIG'] = os.path.join(
-                self.flask_app.root_path, '../conf', ("%s.yaml" % _conf_path))
+                '/etc/docket/', ("%s.yaml" % _conf_path))
 
             with open(self.flask_app.config['APP_CONFIG']) as f:
                 _config = yaml.load(f.read())
@@ -83,5 +83,3 @@ class Application(object):
 
     def start_app(self):
         self.flask_app.run(debug=self.debug)
-
-

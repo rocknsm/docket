@@ -43,9 +43,9 @@ rm -rf %{buildroot}
 DESTDIR=%{buildroot}
 
 # make directories
-mkdir -p %{buildroot}/%{_sysconfdir}/{rocknsm,sysconfig}
+mkdir -p %{buildroot}/%{_sysconfdir}/{docket,sysconfig}
 mkdir -p %{buildroot}/%{_docketdir}
-mkdir -p %{buildroot}/%{_docketdir}/conf
+mkdir -p %{buildroot}/%{_sysconfdir}/docket
 mkdir -p %{buildroot}/%{_docketdir}/docket
 mkdir -p %{buildroot}/%{_tmpfilesdir}
 mkdir -p %{buildroot}/%{_unitdir}
@@ -53,12 +53,12 @@ mkdir -p %{buildroot}/%{_presetdir}
 
 # Install docket files
 cp -a docket/. %{buildroot}/%{_docketdir}/docket/.
-cp -a conf/. %{buildroot}/%{_docketdir}/conf/.
+cp -a conf/. %{buildroot}/%{_sysconfdir}/docket/.
 install -p -m 644 systemd/docket.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket.socket  %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket-celery.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}%{_tmpfilesdir}/%{name}.conf
-install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/rocknsm/
+install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/docket/
 install -p -m 644 systemd/docket.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 install -p -m 644 systemd/docket.preset %{buildroot}%{_presetdir}/95-%{name}.preset
 
@@ -86,7 +86,7 @@ exit 0
 %files
 %defattr(0644, root, root, 0755)
 %dir %{_docketdir}
-%config %{_docketdir}/conf/devel.yaml
+%config %{buildroot}/%{_sysconfdir}/docket/*.yaml
 %{_docketdir}/*
 
 # Service files
@@ -94,7 +94,7 @@ exit 0
 %{_unitdir}/*
 %{_presetdir}/*
 %{_sysconfdir}/sysconfig/%{name}
-%{_sysconfdir}/rocknsm/docket-uwsgi.ini
+%{_sysconfdir}/docket/docket-uwsgi.ini
 
 # Runtime dirs
 %dir /run/%{name}/
@@ -156,4 +156,3 @@ exit 0
 - Removed .spec from gitignore (derek@rocknsm.io)
 * Thu Jul 27 2017 Derek Ditch <derek@rocknsm.io> 0.0.2-1
 - Initial use of tito to build SRPM
-

@@ -1,8 +1,8 @@
 ---
-- name: Install ROCK NSM COPR repo
+- name: docket | install rocknsm copr repo
   yum_repository:
     name: rocknsm_copr
-    description: Copr repor for ROCKNSM devel
+    description: Copr repo for ROCKNSM devel
     file: rocknsm_copr
     baseurl: https://copr-be.cloud.fedoraproject.org/results/@rocknsm/rocknsm-2.1/epel-7-\$basearch/
     gpgkey: https://copr-be.cloud.fedoraproject.org/results/@rocknsm/rocknsm-2.1/pubkey.gpg
@@ -10,12 +10,12 @@
     repo_gpgcheck: no
     skip_if_unavailable: yes
     enabled: yes
-  when: ansible_hostname in groups['docket']
-   
-- name: Install docket
+  when: ansible_hostname in groups['docket'] and with_docket_yumrepo is true
+
+- name: docket | install packages
   yum:
-    name: 
-      - docket 
-      - nginx
-    state: present
+    name:
+      - docket
+      - lighttpd
+    state: latest
   when: ansible_hostname in groups['docket']
