@@ -45,7 +45,6 @@ DESTDIR=%{buildroot}
 # make directories
 mkdir -p %{buildroot}/%{_sysconfdir}/{docket,sysconfig}
 mkdir -p %{buildroot}/%{_docketdir}
-mkdir -p %{buildroot}/%{_sysconfdir}/docket
 mkdir -p %{buildroot}/%{_docketdir}/docket
 mkdir -p %{buildroot}/%{_tmpfilesdir}
 mkdir -p %{buildroot}/%{_unitdir}
@@ -86,15 +85,17 @@ exit 0
 %files
 %defattr(0644, root, root, 0755)
 %dir %{_docketdir}
-%config %{buildroot}/%{_sysconfdir}/docket/*.yaml
 %{_docketdir}/*
+
+# Config files
+%config %{_sysconfdir}/docket/*.yaml
+%config %{_sysconfdir}/docket/docket-uwsgi.ini
 
 # Service files
 %{_tmpfilesdir}/%{name}.conf
 %{_unitdir}/*
 %{_presetdir}/*
 %{_sysconfdir}/sysconfig/%{name}
-%{_sysconfdir}/docket/docket-uwsgi.ini
 
 # Runtime dirs
 %dir /run/%{name}/
@@ -107,6 +108,8 @@ exit 0
 
 %doc README.md LICENSE docs/
 %doc contrib/nginx-example.conf
+%doc contrib/docket_lighttpd_scgi.conf
+%doc contrib/docket_lighttpd_vhost.conf
 
 %changelog
 * Sun Aug 06 2017 Derek Ditch <derek@rocknsm.io> 0.0.14-1
