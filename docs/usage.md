@@ -115,7 +115,7 @@ responses from each sensor.
 
 Here's some example output of this query endpoint. Note the
 displayed `sensor` is the name given in the Docket
-configuration file located at `/opt/rocknsm/docket/conf/prod.yaml`.
+configuration file located at `/etc/docket/prod.yaml`.
 
 ```
 curl localhost:8080/stats/

@@ -10,7 +10,7 @@
     repo_gpgcheck: no
     skip_if_unavailable: yes
     enabled: yes
-  when: ansible_hostname in groups['docket'] and with_docket_yumrepo is true
+  when: ansible_hostname in groups['docket'] and docket_install == "yumrepo"
 
 - name: docket | install packages
   yum:

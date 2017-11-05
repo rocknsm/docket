@@ -1,3 +1,7 @@
+#######################################################################
+## file: /etc/lighttpd/conf.d/scgi_docket.conf
+## {{ ansible_managed }}
+
 server.modules += ( "mod_scgi" )
 scgi.protocol = "uwsgi"
 scgi.server = (

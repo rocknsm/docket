@@ -6,6 +6,10 @@ rocknsm_conf_dir: /etc/rocknsm
 rocknsm_conf_user: root
 rocknsm_conf_group: root
 
+# How are we going to install docket?
+# Currently supports one of: yumrepo
+docket_install: yumrepo
+
 # Application config
 docket_debug: false
 docket_testing: false
@@ -19,17 +23,16 @@ docket_uwsgi_socket: /run/docket/docket.socket
 
 # Web server config
 docket_tls: true
-docket_listen_ip: "{{ ansible_default_ipv4 }}"
-docket_listen_port: 443
 
 # An empty string defaults to all interfaces
+docket_listen_ip: ""
+docket_listen_port: "{{ 8443 if docket_tls else 8080 }}"
+
 docket_web_server: lighttpd
-docket_web_socket: ""
-docket_web_port: "8443"
 docket_web_pemfile: "/etc/pki/tls/private/lighttpd_docket.pem"
 
 # Vars to generate keys/certs
-docket_x509_dir: /etc/rocknsm/certs
+docket_x509_dir: /etc/pki/docket/
 docket_x509_key: "{{docket_x509_dir}}/docket_{{ ansible_default_ipv4.address }}_key.pem"
 docket_x509_cn: "{{ ansible_hostname }}_docket"
 docket_x509_o: Stenographer
@@ -45,3 +48,13 @@ steno_ports:
 steno_certs_dir: /etc/stenographer/certs
 steno_ca_cert: "{{steno_certs_dir}}/ca_cert.pem"
 steno_ca_key:  "{{steno_certs_dir}}/ca_key.pem"
+
+# This is used to generate the config for docket on
+# where to connect and how to authenticate
+docket_steno_instances:
+- host: "{{ steno_host}}"
+  sensor: "{{ steno_sensor }}"
+  port: "{{ steno_port }}"
+  key: "{{ steno_certs_dir }}/client_key.pem"
+  cert: "{{ steno_certs_dir }}/client_cert.pem"
+  ca: "{{ steno_ca_cert }}"

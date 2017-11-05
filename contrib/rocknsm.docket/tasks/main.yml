@@ -8,12 +8,13 @@
 # Install packages
 - include: install.yml
 
-# Configure docket app settings
-- include: docket_config.yml
-
 # Generate/copy x509 client cert/keys and CA certs
 - include: crypto.yml
 
-# Configure nginx settings
+# Configure docket app settings
+- include: docket_config.yml
+
+# Configure web server settings
+- include: lighttpd.yml
 
 # Enable / Activate Services

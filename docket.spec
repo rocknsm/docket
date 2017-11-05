@@ -68,7 +68,7 @@ touch %{buildroot}/run/%{name}/%{name}.socket
 
 %pre
 getent group %{name} >/dev/null || groupadd -r %{name}
-getent passwd USERNAME >/dev/null || \
+getent passwd %{name} >/dev/null || \
     useradd -r -g %{name} -d %{_docketdir} -s /sbin/nologin \
     -c "System account for Docket services for ROCK NSM" %{name}
 exit 0
