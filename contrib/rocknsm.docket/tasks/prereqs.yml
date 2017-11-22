@@ -29,4 +29,15 @@
   assert:
     that:
       - stenographer_pkg_status|json_query('results[?yumstate==`installed`]')|length>0
-    msg: Stenographer host require the Stenographer package is installed
+    msg: Stenographer hosts require the Stenographer package is installed
+
+- name: docket | check docket hosts for {{ docket_web_server }}
+  yum:
+    list="{{docket_web_server}}"
+  register: webserver_pkg_status
+
+- name: docket | validate {{ docket_web_server }} is installed
+  assert:
+    that:
+      - webserver_pkg_status|json_query('results[?yumstate==`installed`]')|length>0
+    msg: Docket hosts require {{docket_web_server}} is installed.

@@ -13,7 +13,7 @@
 - name: docket | enable lighttpd vhosts
   lineinfile:
     path: /etc/lighttpd/lighttpd.conf
-    regexp: '^#\s*include.*vhosts\.d/.*$'
+    regexp: 'include\s.*/etc/lighttpd/vhosts\.d/.*$'
     line: include "/etc/lighttpd/vhosts.d/*.conf"
   notify: docket | restart lighttpd
 
