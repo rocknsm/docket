@@ -1,7 +1,7 @@
 %global _docketdir /opt/rocknsm/docket
 
 Name:           docket
-Version:        0.0.14
+Version:        0.1.0
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -112,6 +112,10 @@ exit 0
 %doc contrib/docket_lighttpd_vhost.conf
 
 %changelog
+* Wed Nov 22 2017 Derek Ditch <derek@rocknsm.io> 0.1.0-1
+- Ansible role under contrib/rocknsm.docket now deploys docket
+- Ansible role currently supports lighttpd and configs stenographer keys
+
 * Sun Aug 06 2017 Derek Ditch <derek@rocknsm.io> 0.0.14-1
 - Add docs dir to documentation (derek@rocknsm.io)
 
