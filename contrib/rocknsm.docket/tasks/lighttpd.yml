@@ -17,6 +17,12 @@
     line: include "/etc/lighttpd/vhosts.d/*.conf"
   notify: docket | restart lighttpd
 
+- name: docket | add {{docket_web_user}} user to {{docket_group}} group
+  user:
+    name: "{{ docket_web_user }}"
+    groups: "{{ docket_group }}"
+    append: yes
+
 - name: docket | enable lighttpd service
   service:
     name: lighttpd
