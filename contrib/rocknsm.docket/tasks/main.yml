@@ -3,18 +3,18 @@
 
 
 # Ensure `stenographer` and `nginx` groups exists
-- include: prereqs.yml
+- import_tasks: prereqs.yml
 
 # Install packages
-- include: install.yml
+- import_tasks: install.yml
 
 # Generate/copy x509 client cert/keys and CA certs
-- include: crypto.yml
+- import_tasks: crypto.yml
 
 # Configure docket app settings
-- include: docket_config.yml
+- import_tasks: docket_config.yml
 
 # Configure web server settings
-- include: lighttpd.yml
+- import_tasks: lighttpd.yml
 
 # Enable / Activate Services

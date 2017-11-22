@@ -17,19 +17,19 @@
 - name: docket | restart redis
   service:
     name: redis
-    state: restart
+    state: restarted
 
 - name: docket | restart docket celery
   service:
     name: docket-celery
-    state: restart
+    state: restarted
 
 - name: docket | restart docket uwsgi
   service:
     name: docket
-    state: restart
+    state: restarted
 
 - name: docket | restart lighttpd
   service:
     name: lighttpd
-    state: restart
+    state: restarted

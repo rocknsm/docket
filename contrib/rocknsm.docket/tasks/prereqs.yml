@@ -12,10 +12,21 @@
 - name: docket | check docket and stenographer hosts for pyopenssl
   yum:
     list=pyOpenSSL
-  register: pyopenssl_status
+  register: pyopenssl_pkg_status
 
 - name: docket | validate pyopenssl >= 15.0 is installed
   assert:
     that:
-      - "{{pyopenssl_status.results|selectattr('yumstate', 'match', 'installed')|map(attribute='version')| version_compare('15.0.0', '>=' )}}"
+      - "{{pyopenssl_pkg_status.results|selectattr('yumstate', 'match', 'installed')|map(attribute='version')| version_compare('15.0.0', '>=' )}}"
     msg: "Docket hosts require PyOpenSSL greater than 15.0 prior to executing this play"
+
+- name: docket | check stenographer host for stenographer
+  yum:
+    list=stenographer
+  register: stenographer_pkg_status
+
+- name: docket | validate stenographer is installed
+  assert:
+    that:
+      - stenographer_pkg_status|json_query('results[?yumstate==`installed`]')|length>0
+    msg: Stenographer host require the Stenographer package is installed

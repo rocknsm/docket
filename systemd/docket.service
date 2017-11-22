@@ -9,7 +9,7 @@ EnvironmentFile=-/etc/sysconfig/docket
 ExecStart=/usr/sbin/uwsgi \
           --ini /etc/docket/docket-uwsgi.ini
 User=docket
-Group=nginx
+Group=docket
 Restart=on-failure
 KillSignal=SIGQUIT
 Type=notify

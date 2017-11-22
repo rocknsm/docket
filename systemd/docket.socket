@@ -5,9 +5,8 @@ PartOf=docket.service
 [Socket]
 ListenStream=/run/docket/docket.socket
 SocketUser=docket
-SocketGroup=nginx
+SocketGroup=docket
 SocketMode=0660
 
 [Install]
 WantedBy=sockets.target
-

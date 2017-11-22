@@ -8,6 +8,7 @@
 # Configure docket app settings
 - name: docket | ensure ansible_cache dir exists
   local_action: file path={{ ansible_cache }} state=directory mode=0700
+  become: false
 
 # TODO: this should probably
 - name: docket | ensure rock nsm conf dir exists
@@ -39,7 +40,6 @@
     group: "{{ docket_x509_group }}"
   when: inventory_hostname in groups['docket']
 
-
 # Generate/copy x509 client cert/keys and CA certs
 # Use new openssl module in ansible 2.3
 - name: docket | create docket private key
@@ -56,9 +56,6 @@
   with_items: "{{ groups['stenographer'] }}"
   when: inventory_hostname in groups['docket']
 
-- debug: var=docket_cert.results
-  when: inventory_hostname in groups['docket']
-
 - name: docket | create docket csr
   openssl_csr:
     path: "{{ docket_x509_key }}.csr"
@@ -70,7 +67,7 @@
     extendedKeyUsage: clientAuth
   when:
     - inventory_hostname in groups['docket']
-    - docket_cert|json_query('results[?stat.exists==`false`]')|length
+    - docket_cert|json_query('results[?stat.exists==`false`]')|length>0
   register: new_csr
 
 - name: docket | fetch csr
@@ -83,9 +80,9 @@
     - not new_csr|skipped
 
 - debug:
-    msg: "{{ hostvars[item].docket_cert|json_query('results[?stat.exists==`false`]')|length }}"
-  when:
-    - inventory_hostname in groups['stenographer']
+    msg: "{{ hostvars[item].docket_cert|json_query('results[?stat.exists==`false`]')|length > 0 }}"
+  with_items:
+    - "{{ groups['docket'] }}"
 
 - debug:
     var: hostvars[item].docket_cert|json_query('results[?item==inventory_hostname]')
@@ -103,7 +100,7 @@
     - "{{ groups['docket'] }}"
   when:
     - inventory_hostname in groups['stenographer']
-    - hostvars[item].docket_cert.results|selectattr("item", "equalto", inventory_hostname)|map(attribute="stat.exists")|select("equalto",false)|list|length
+    - hostvars[item].docket_cert|json_query('results[?stat.exists==`false`]')|length > 0
 
 - name: docket | sign certificate signing requests
   openssl_certificate:
@@ -114,7 +111,7 @@
   with_items: "{{ groups['docket'] }}"
   when:
     - inventory_hostname in groups['stenographer']
-    - hostvars[item].docket_cert.results|map(attribute="stat.exists")|select("equalto",false)|list|length
+    - hostvars[item].docket_cert|json_query('results[?stat.exists==`false`]')|length > 0
 
 - name: docket | pull certificates back
   fetch:
@@ -124,7 +121,7 @@
   with_items: "{{ groups['docket'] }}"
   when:
     - inventory_hostname in groups['stenographer']
-    - hostvars[item].docket_cert.results|map(attribute="stat.exists")|select("equalto",false)|list|length
+    - hostvars[item].docket_cert|json_query('results[?stat.exists==`false`]')|length > 0
 
 - name: docket | pull back ca certificates
   fetch:
@@ -141,7 +138,7 @@
   with_items: "{{ groups['stenographer'] }}"
   when:
     - inventory_hostname in groups['docket']
-    - docket_cert.results|map(attribute="stat.exists")|select("equalto",false)|list|length
+    - hostvars[item].docket_cert|json_query('results[?stat.exists==`false`]')|length > 0
 
 - name: docket | push stenographer ca certs
   copy:
