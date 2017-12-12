@@ -1,7 +1,7 @@
 %global _docketdir /opt/rocknsm/docket
 
 Name:           docket
-Version:        0.1.1
+Version:        0.2.1
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -17,7 +17,6 @@ Requires(pre):  shadow-utils
 
 Requires:       python2-flask
 Requires:       python2-flask-restful
-Requires:       python-flask-script
 Requires:       python2-celery
 Requires:       python-redis
 Requires:       python-requests
@@ -43,7 +42,7 @@ rm -rf %{buildroot}
 DESTDIR=%{buildroot}
 
 # make directories
-mkdir -p %{buildroot}/%{_sysconfdir}/{docket,sysconfig}
+mkdir -p %{buildroot}/%{_sysconfdir}/{rocknsm,sysconfig}
 mkdir -p %{buildroot}/%{_docketdir}
 mkdir -p %{buildroot}/%{_docketdir}/docket
 mkdir -p %{buildroot}/%{_tmpfilesdir}
@@ -52,12 +51,13 @@ mkdir -p %{buildroot}/%{_presetdir}
 
 # Install docket files
 cp -a docket/. %{buildroot}/%{_docketdir}/docket/.
-cp -a conf/. %{buildroot}/%{_sysconfdir}/docket/.
+cp -a conf/. %{buildroot}/%{_docketdir}/conf/.
 install -p -m 644 systemd/docket.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket.socket  %{buildroot}%{_unitdir}/
-install -p -m 644 systemd/docket-celery.service %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket-celery-query.service %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket-celery-io.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}%{_tmpfilesdir}/%{name}.conf
-install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/docket/
+install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/rocknsm/
 install -p -m 644 systemd/docket.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 install -p -m 644 systemd/docket.preset %{buildroot}%{_presetdir}/95-%{name}.preset
 
@@ -85,17 +85,15 @@ exit 0
 %files
 %defattr(0644, root, root, 0755)
 %dir %{_docketdir}
+%config %{_docketdir}/conf/devel.yaml
 %{_docketdir}/*
-
-# Config files
-%config %{_sysconfdir}/docket/*.yaml
-%config %{_sysconfdir}/docket/docket-uwsgi.ini
 
 # Service files
 %{_tmpfilesdir}/%{name}.conf
 %{_unitdir}/*
 %{_presetdir}/*
 %{_sysconfdir}/sysconfig/%{name}
+%{_sysconfdir}/rocknsm/docket-uwsgi.ini
 
 # Runtime dirs
 %dir /run/%{name}/
@@ -112,6 +110,38 @@ exit 0
 %doc contrib/docket_lighttpd_vhost.conf
 
 %changelog
+* Mon Jan 08 2018 Jeffrey Kwasha <JeffKwasha@users.noreply.github.com> 0.2.1-1
+- New API: /status - JSON describing the state of queries known by the system.
+- internalized cleanup - query expiration is configurable by time or free space. 
+- improved logging.  Requester's IP, port and user agent are logged.
+- More helpful error messages and better 'front-end' request validation.
+- configuration options now understand 'capacity' strings (KB MB GB TB PB) so: '1GB', '5MB 500KB', '1KB 1MB 1TB 0.1PB'
+- configuration options now understand 'duration' strings exactly like query durations: '1h' '30s' '20m' 
+- WEIGHT_* - an experimental limitation on query requests to prevent overly-burdensome requests.
+- FREE_BYTES - capacity: capture query requests will be denied if the SPOOL_DIR doesn't have this much space
+- FREE_NODES - integer: query requests denied if the SPOOL_DIR doesn't have this many nodes
+- EXPIRE_SPACE - capacity: queries will be deleted during a cleanup to ensure this much space
+- EXPIRE_TIME - duration: queries older than this will be deleted during a cleanup 
+- CLEANUP_PERIOD - duration: maximum frequency of cleanup
+- LOG_* - Logging options are now configurable
+- LOG_FILE - works better, but it's far from perfect
+- a tiny sad attempt at unittest
+
+* Sun Dec 06 2017 Jeffrey Kwasha <JeffKwasha@users.noreply.github.com> 0.2.0-1
+- Add design doc (JeffKwasha@users.noreply.github.com)
+- New query module for new Query and QueryRequest classes (JeffKwasha@users.noreply.github.com)
+- New config module centralizing access to configuration parameters (JeffKwasha@users.noreply.github.com)
+- Celery now uses 'query' and 'io' queues with separate workers (1 process each) to handle requests (JeffKwasha@users.noreply.github.com)
+- Reduced CPU usage. Docket will not burn a core waiting for stenographer responses (JeffKwasha@users.noreply.github.com)
+- Requests to several stenographer instances run in parallel (JeffKwasha@users.noreply.github.com)
+- Multiple requests to a single stenographer instances will run serially to prevent IO thrashing (JeffKwasha@users.noreply.github.com)
+- Merged result captures are served directly by nginx (JeffKwasha@users.noreply.github.com)
+- New API: /urls - a JSON encoded dictionary of id:url for all available captures (JeffKwasha@users.noreply.github.com)
+- New API: /ids - a JSON encoded list of ids for all requests (currently doesn't include requests queued for stenographer) (JeffKwasha@users.noreply.github.com)
+- Queries now return a JSON encoded id, time (epoch), url where the capture file can eventually be retrieved (JeffKwasha@users.noreply.github.com)
+- Duplicate queries (identical clauses within the same minute) are detected and simply refresh the expiration time (JeffKwasha@users.noreply.github.com)
+- New Configuration parameters: WEB_ROOT, MERGED_NAME, IDLE_TIME, IDLE_SLEEP, IDLE_TIMEOUT, QUERY_TIMEOUT (JeffKwasha@users.noreply.github.com)
+
 * Fri Dec 01 2017 Derek Ditch <derek@rocknsm.io> 0.1.1-1
 - Fixes lingering permission issues with systemd. (derek@rocknsm.io)
 

@@ -1,7 +1,8 @@
 [Unit]
 Description=Docket uWSGI app
 After=syslog.target
-Requires=docket-celery.service
+Requires=docket-celery-io.service
+Requires=docket-celery-query.service
 Requires=docket.socket
 
 [Service]

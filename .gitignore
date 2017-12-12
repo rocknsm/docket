@@ -92,3 +92,10 @@ ENV/
 
 # Random files
 *.bak
+
+# Vim files
+.*.un~
+*~
+.*.swo
+.*.swp
+.swp

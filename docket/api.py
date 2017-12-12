@@ -1,20 +1,28 @@
 from flask import Flask, Blueprint, Response
-from flask_restful import Resource, Api
+from flask_restful import Api
 
-from resources.pcap import PcapApi, PcapUri, RawQuery
-from resources.stats import Stats
+from resources.query import QueryRequest, ApiRequest, RawRequest
+
+from config import Config
 
 # Declare the blueprint
 api_bp = Blueprint('api', __name__)
-api = Api(api_bp)
+api    = Api(api_bp)
 
 # Add resources
-api.add_resource(PcapApi, '/api/')
-api.add_resource(PcapUri, '/pcap/<path:path>')
-api.add_resource(RawQuery, '/query' )
-api.add_resource(Stats, '/stats/', '/stats/<string:sensors>', endpoint='stats')
+WEB_ROOT = Config.get('WEB_ROOT', '/')
+# consider 'login_required' for queries
+api.add_resource(RawRequest, WEB_ROOT+'raw/<string:query>' )     # ex: /raw/host+1.2.3.4+port+80
+api.add_resource(QueryRequest,
+        WEB_ROOT+'q/<path:path>',                   # ex: GET  /q/host/1.2.3.4/port/80
+        WEB_ROOT,                                   # ex: POST / -d '{ "port":21, "after-ago":"1m" }'
+        )
+api.add_resource(ApiRequest,
+        WEB_ROOT+'<string:api>/<path:selected>',    # ex: GET /urls/ID,ID,...
+        WEB_ROOT+'<string:api>',
+        )
 
-if __name__ == '__main__':
-    app = Flask(__name__)
-    app.register_blueprint(api_bp)
-    app.run(debug=True)
+#if __name__ == '__main__':
+#    app = Flask(__name__)
+#    app.register_blueprint(api_bp)
+#    app.run(debug=True)

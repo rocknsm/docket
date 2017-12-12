@@ -1,0 +1,50 @@
+---
+STENOGRAPHER_INSTANCES:
+    - { host: 127.0.0.1, sensor: sensor-001, port: 1234, key: /etc/stenographer/certs/client_key.pem, cert: /etc/stenographer/certs/client_cert.pem, ca: /etc/stenographer/certs/ca_cert.pem }
+
+# Flask config values
+DEBUG: true
+TESTING: true
+SECRET_KEY: ITS_A_SECRET_TO_EVERBODY
+SESSION_COOKIE_NAME: DOCKET_SESSION
+USE_X_SENDFILE: false
+# Celery configuration - CELERY_URL is many things :/
+CELERY_URL: redis://localhost:6379
+# all results are simply written to disk, at the moment there's no need to care about brokering them
+CELERY_TASK_IGNORE_RESULT: true
+# Logging configuration
+LOGGER_NAME: docket
+# LOG_LEVEL  (error, warning, info, debug) any other value will be ignored
+LOG_LEVEL: info
+# LOG_FILE   a secondary logging handler - a file - will be created if this is set
+#LOG_FILE: /var/spool/docket/docket.log
+SPOOL_DIR: ./test/spool
+WEB_ROOT: /
+# TIME_WINDOW  specifies the size of a time 'chunk' in seconds for request de-duplication
+#              Requested times are widened to a multiple of this value.
+TIME_WINDOW: 60
+# IDLE_TIME     - 5, assume stenoboxes remain IDLE for 5 seconds and check again after that.
+# IDLE_SLEEP    - 2.0, wait time between IDLE queries. will occur at least every IDLE_TIME.
+# IDLE_TIMEOUT  - 3.0, assume stenoboxes are broken if stats doesn't return within this many seconds
+# QUERY_TIMEOUT - 720, assume stenoboxes are broken if a query doesn't return within this many seconds
+IDLE_TIME: 5
+IDLE_SLEEP: 2.0
+IDLE_TIMEOUT: 3.0
+QUERY_TIMEOUT: 720.0
+# MERGED_NAME   - base name (no extension) of the result capture file. Just a string.
+MERGED_NAME: merged
+# LONG_AGO      - The default 'after' clause is this many hours ago
+LONG_AGO: 24
+# WEIGHTS       - each request is 'weighed'.  Exceptionally broad queries will tip the threshold unless 'ignore-weight' is present
+#               NOTE: Raw queries are not weighed or widened so only identical raw queries are deduplicated.
+WEIGHT_THRESHOLD: 1234567890
+WEIGHT_IP: 1
+WEIGHT_NET: 100
+WEIGHT_PORT: 1
+WEIGHT_HOUR: 60
+# DATE_FORMAT   - strftime format for showing a datetime to a user, not used yet
+DATE_FORMAT: '%Y%jT%H:%M:%S'
+# EXPIRE_TIME   - We guess data will be available for this long (seconds) when displaying expiration dates
+EXPIRE_TIME: 3600
+# ID_FORMAT:    - if set to a single dash '-' will use the standard GUID format for request IDs
+ID_FORMAT: false
