@@ -1,0 +1,39 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# NOTE: I use this for testing the roles using the included test.sh
+# This _SHOULDN'T_ be used for deploying!!! You've been warned.
+
+$script = <<EOF
+yum install -y epel-release
+
+cat > /etc/yum.repos.d/rocknsm-2.1-copr.repo <<'END'
+[group_rocknsm-rocknsm-2.1]
+name=Copr repo for rocknsm-2.1 owned by @rocknsm
+baseurl=https://copr-be.cloud.fedoraproject.org/results/@rocknsm/rocknsm-2.1/epel-7-$basearch/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://copr-be.cloud.fedoraproject.org/results/@rocknsm/rocknsm-2.1/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
+END
+
+yum install -y ansible pyOpenSSL stenographer docket lighttpd
+stenokeys.sh stenographer stenographer
+
+cd /vagrant/rocknsm.docket
+./test.sh
+EOF
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+
+  config.vm.synced_folder '../', '/vagrant', type: 'rsync'
+
+  config.vm.provision "shell" do |s|
+      s.inline = $script
+      s.keep_color = true
+  end
+end
