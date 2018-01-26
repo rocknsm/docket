@@ -7,20 +7,12 @@ from common.exceptions import HTTPException
 from config import Config
 import logging
 
-# !! can't use celery decorator here - we haven't made it yet
-# !! can't use add_periodic_task elsewhere - celery will have been 'finalized'
-#@celery.on_after_configure.connect
-#def setup_periodic_tasks(sender, **kwargs):
-#    from tasks import cleanup  # !! can't import tasks here - it imports celery -> loop
-#    sender.add_periodic_task(Config.get('CLEANUP_PERIOD', 3600), cleanup.s(), name='hourly cleanup')
-#    Config.logger.info("Added periodic task to {}".format(str(sender)))
-
 # Structure inspired by https://www.twilio.com/docs/tutorials/appointment-reminders-python-flask#the-application-structure
 class Application(object):
-    def __init__(self, config=None):
+    def __init__(self, environment=None):
         self.flask_app = Flask('docket')
 
-        self._configure_app(config)
+        self._configure_app(environment)
         self._set_blueprints()
         self.register_error_handlers()
 
@@ -57,33 +49,32 @@ class Application(object):
 
     def _set_blueprints(self):
         from api import api_bp
-        self.flask_app.register_blueprint(api_bp)
+        self.flask_app.register_blueprint(api_bp, url_prefix=Config.get('WEB_ROOT'))
 
     def _configure_app(self, env):
         conf = env.get('DOCKET_CONF') or env.get('APP_CONF')
-        config = Config.load(conf, flask_app=self.flask_app)
+        config = Config.load(conf, flask_app=self.flask_app, env=env)
 
-        celery_url = env.get('CELERY_URL', config['CELERY_URL'])
+        celery_url = Config.get('CELERY_URL')
 
         if not celery_url:
-            Config.logger.critical("Unable to locate 'CELERY_URL', it configures the broker.")
+            Config.logger.critical("Unable to locate 'CELERY_URL', it configures celery's broker.")
             raise Exception("Invalid configuration / Environment: "
                             "Unable to locate 'CELERY_URL', it configures the broker.")
 
         if not config.get('CELERY_TASK_IGNORE_RESULT'):
-            config['result_backend']    = env.get('REDIS_URL', celery_url)
-        config['CELERY_BROKER_URL']     = env.get('REDIS_URL', celery_url)
+            config['result_backend'] = Config.get('REDIS_URL', celery_url)
+        config['CELERY_BROKER_URL'] = Config.get('REDIS_URL', celery_url)
 
-        # Update file config with environment overrides
-        self.flask_app.secret_key       = env.get('SECRET_KEY', config['SECRET_KEY'])
-        self.flask_app.spool_dir        = env.get('SPOOL_DIR',  config['SPOOL_DIR'])
+        self.flask_app.secret_key = Config.get('SECRET_KEY')
+        self.flask_app.spool_dir = Config.get('SPOOL_DIR')
         Config.logger.info('Using SPOOL_DIR [{}]'.format(self.flask_app.spool_dir))
 
         if self.flask_app.secret_key.find('CHANGE_THIS') >= 0:
             Config.logger.warning('Insecure SECRET_KEY detected! Using a randomized key.')
             # this randomization breaks sessions, but we don't have any.
             import os
-            self.flask_app.secret_key   = os.urandom(57)
+            self.flask_app.secret_key = os.urandom(57)
 
     def start_app(self):
         self.flask_app.run(debug=self.debug)

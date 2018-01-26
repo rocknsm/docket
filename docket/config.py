@@ -1,6 +1,7 @@
 from __future__ import print_function
 # A central location for the config dictionary
 #   see application for initialization
+import redis
 import yaml
 import os
 import logging
@@ -26,9 +27,11 @@ class Config:
     log_level = None
     file_handler = None
     config = {
-        'WEB_ROOT': '/',
         'SPOOL_DIR': '/var/spool/docket',   # overridden by environment
         'SECRET_KEY': 'CHANGE_THIS',        # overridden by environment
+        'SESSION_COOKIE_NAME': 'DOCKET_COOKIE',
+        'USE_X_SENDFILE': False,
+        #'CELERY_URL': 'redis://localhost:6379', # If not provided we should error out
         'CELERY_TASK_IGNORE_RESULT': True,
         'LOG_MSG_FORMAT': '[%(processName)-8s] %(message)s',
         'LOG_DATE_FORMAT': '%Y-%m-%dT%H:%M:%SZ',
@@ -38,11 +41,14 @@ class Config:
         'LOG_FILE_MSG_FORMAT': '%(asctime)s[%(processName)-8s] %(message)s',
         'LOG_FILE_DATE_FORMAT': '%Y%jT%H:%M:%S',
         'LOG_FILE_LEVEL': 'info',
+        'STENOGRAPHER_INSTANCES': { 'host': '127.0.0.1', 'sensor': 'sensor-1', 'port': 1234, 'key': '/etc/stenographer/certs/client_key.pem', 'cert': '/etc/stenographer/certs/client_cert.pem', 'ca': '/etc/stenographer/certs/ca_cert.pem' },
+        'DOCKET_NO_REDIS': False,
     }
     _default = config.copy()
+    _redis = None
 
     @classmethod
-    def load(cls, filename=None, flask_app=None, logger=None):
+    def load(cls, filename=None, flask_app=None, logger=None, env=None):
         """ Set Config from a yaml file:
             filename a config file: search for the file in several directories
         """
@@ -57,9 +63,7 @@ class Config:
             [ tuple(),                      # <empty> - filename can be any valid path
              (fs_root, 'etc', 'docket'),    # /etc/docket/filename
              (fs_root, 'etc',),             # /etc/filename
-#            (os.curdir, os.pardir, 'conf'),# CWD/../conf/filename
-             (app_root, 'conf'),            # APP/conf/filename
-             ('conf',)]                     # ./conf/filename
+            ]
         )
         for f,p in paths:
             if not f:
@@ -74,14 +78,20 @@ class Config:
             print("Config: >{}< not found".format(filepath))
 
         # load the config file and update our class config data
-        with open(filepath) as f:
-            cls.config.update(yaml.load(f.read()))
-        print("Config: loaded >{}<".format(filepath))
+        if filepath:
+            with open(filepath) as f:
+                cls.config.update(yaml.load(f.read()))
+                print("Config: loaded >{}<".format(filepath))
 
-        # I'm having the hardest time getting a logging to work
+        if type(env) is dict:
+            cls.config.update(env)
+
+        # I'm having the hardest time getting logging to 'work'
+        # TODO have exceptions output in LOG_FILE... (WHY NOT)
         cls.loggers['docket']= logging.getLogger(Config.get('LOGGER_NAME','docket'))
+        cls.loggers[None] = logging.getLogger()
         if isinstance(logger, logging.Logger):
-            cls.loggers[None] = logger
+            cls.loggers['docket'] = logger
         if flask_app:
             flask_app.config.from_mapping(cls.config)
             cls.loggers['flask'] = flask_app.logger
@@ -123,6 +133,14 @@ class Config:
 
         cls.get_logger()
 
+    @classmethod
+    def redis(cls):
+        if cls._redis:
+            return cls._redis
+        if cls.get('DOCKET_NO_REDIS') or not cls.get('REDIS_URL'):
+            return None
+        cls._redis = redis.from_url(url=cls.get('REDIS_URL'))
+        return cls._redis
 
     @classmethod
     def get_logger(cls, name=None):
@@ -130,24 +148,29 @@ class Config:
         return cls.logger
 
     @classmethod
-    def _set(cls, key, default):
-        """ _set checks for consistent use of 'default' config values """
+    def _set(cls, key, default, minval=None):
+        """ _set checks for consistent 'default' values and enforces minimum value """
         old = cls._default.get(key)
         if old is not None and old != default:  # find programmers providing conflicting defaults
-            raise Exception("Config [{}] - disagreement in defaults: {}:{}".format(key, old, default))
+            raise ValueError("Config [{}] - disagreement in defaults: {}:{}".format(key, old, default))
+        if type(minval) in (int, float):
+            if default < minval:
+                raise ValueError("Config [{}] - default < minval: {}:{}".format(key, default, minval))
         cls._default[key] = default
-        return cls.config.setdefault(key, default)
+        if not key in cls.config:
+            cls.config[key] = default
+        elif type(minval) in (int, float):
+            cls.config[key] = max(minval, cls.config[key])
 
     @classmethod
-    def setdefault(cls, key, default, min=None):
-        rv = cls._set(key, default)
-        if min and rv < min:
-            cls.config[key] = min
-            rv = min
-        return rv
+    def setdefault(cls, key, default, minval=None):
+        cls._set(key, default, minval)
+        return cls.config[key]
 
     @classmethod
-    def get(cls, key, default=None):
+    def get(cls, key, default=None, minval=None):
         if default is not None:
-            return cls._set(key, default)
+            return cls.setdefault(key, default, minval)
+        if type(minval) in (int, float):
+            cls.config[key] = max(cls.config.get(key), minval)
         return cls.config.get(key)

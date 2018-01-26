@@ -1,3 +1,4 @@
+from werkzeug.exceptions import BadRequest
 from datetime import datetime, timedelta
 from fcntl import flock, LOCK_EX, LOCK_NB
 from collections import OrderedDict, Mapping, namedtuple
@@ -10,7 +11,7 @@ import re
 # import docket configuration
 from config import Config
 
-FreeSpace = namedtuple('FreeSpace', 'bytes nodes' )
+FreeSpace = namedtuple('FreeSpace', ['bytes', 'nodes'] )
 
 HOURS   = r'(?P<hours>[\d.]+)\s*(?:h)'
 MINUTES = r'(?P<minutes>[\d.]+)\s*(?:m)'
@@ -43,12 +44,26 @@ TIME_UNITS = dict([
 
 ISOFORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
+try:
+    basestring
+    def is_str(s):
+        return isinstance(s, basestring)
+except NameError:
+    def is_str(s):
+        return isinstance(s, str)
+
+
+
 def parse_duration(s):
     """ parse a single user provided 'duration' string
         and return the number of seconds it represents
+        TODO: out of order durations get ignored
     """
-    if type(s) == int:
+    if type(s) in (int, float):
         return timedelta(seconds=s)
+    if not is_str(s):
+        #raise ValueError("Unable to parse duration: {}".format(s))
+        raise BadRequest("Unable to parse duration: {}".format(s))
     for timefmt in TIMEFORMATS:
         #Config.logger.debug("timefmt is {}".format(timefmt))
         match = re.match(r'\s*' + timefmt + r'\s*$', s, re.I)
@@ -70,16 +85,15 @@ RX_CAPACITY = re.compile(r'|'.join([r'(?:(?P<{}>[\d.]+)\s*'
                                     for k,v in CAPACITIES.items()]))
 def parse_capacity(s):
     total = 0
-    if type(s) == int:
-        return s
-    elif type(s) != str:
+    if type(s) in (int, float):
+        return int(s)
+    elif not is_str(s):
         return None
     for it in RX_CAPACITY.finditer(s):
         for k,v in it.groupdict().items():
             if v:
                 total += CAPACITIES[k] * float(v)
     return total or int(s)
-        
 
 def epoch(when):
     return int((when - datetime(1970,1,1)).total_seconds())
@@ -100,8 +114,6 @@ def readdir(path, startswith=None, endswith=None):
         stats = os.stat(file_path)
         if stats.st_size < 1:
             continue
-        #if stats.st_mtime + 1 > epoch(datetime.utcnow()):
-        #    continue
         files.append(i)
     return files
 
@@ -115,20 +127,28 @@ def file_modified(path, format=None):
     return t
 
 def is_sequence(arg):
-    return (not hasattr(arg, "strip") and
+    return not is_str(arg) and (
             hasattr(arg, "__getitem__") or
             hasattr(arg, "__iter__"))
 
-def recurse_update(a, b):
+def recurse_update(a, b, ignore_none = False):
     """ add everything in b to a
-        _overwrites_ existing values even if the new value is None
+        _overwrites_ existing values unless the new value is None and ignore_none is True
         you might think deepcopy for this, but it can't merge two dictionaries
     """
-    for k,v in b.items():
-        if isinstance(v, Mapping):
-            a[k] = recurse_update(a.get(k, {}), v)
+    for key,bVal in b.items():
+        if isinstance(bVal, Mapping):
+            if (ignore_none):
+                a[key] = recurse_update(a.get(key, {}), {k:v for k,v in bVal.items() if v}, True)
+            else:
+                a[key] = recurse_update(a.get(key, {}), bVal)
+        elif is_sequence(bVal):
+            if not is_sequence(a[key]):
+                a[key] = bVal if a[key] in bVal else bVal.append(a[key])
+            else:
+                a[key].extend([v for v in bVal if v not in a[key] ])
         else:
-            a[k] = v
+            a[key] = bVal if bVal or not ignore_none else a[key]
     return a
 
 def file_lock(f, timeout=2):
@@ -168,9 +188,9 @@ def update_yaml(path, val = None):
                 Config.logger.debug("loaded {}".format(path))
                 # No changes to write.
                 return tmp
-            elif hasattr(val, 'update'):
-                Config.logger.debug("{}.update( {} )".format(val,tmp))
-                val.update(tmp)
+            elif hasattr(tmp, 'update'):
+                Config.logger.debug("{}.update( {} )".format(tmp,val))
+                tmp.update(val)
             elif hasattr(val, '__add__'):
                 Config.logger.debug("{} += {}".format(val,tmp))
                 val += tmp
@@ -182,6 +202,23 @@ def update_yaml(path, val = None):
         f.truncate()
         f.write(yaml.dump(val))
     return val
+
+def write_yaml(path, val):
+    """ Once a file lock is obtained, path is overwritten with yaml encoded contents of val
+    """
+    if not path or val is None:
+        return False
+    # Even though we're just 'writing' the file, I don't want to clobber it until I get a lock
+    # so I open it for append
+    with open(path, 'a+b') as f:
+        if not file_lock(f, timeout=Config.get("LOCK_TIMEOUT", 2)):
+            Config.logger.error("Failed to lock {}".format(path))
+            return False
+
+        f.seek(0)
+        f.truncate()
+        f.write(yaml.dump(val))
+        return True
 
 def free_space(f):
     """ return ( Bytes Free, Nodes free ) for the filesystem containing the provided file
@@ -202,7 +239,7 @@ def space_low():
         return "Low on disk space: {} free".format(space.bytes)
     if space.nodes < Config.get('FREE_NODES', 100 ):
         return "Low on FileSystem Nodes: {} free".format(space.nodes)
-        return False
+    return False
 
 def validate_ip(ip):
     """ return a tuple (string, AF_INET) for valid IP addresses
@@ -210,19 +247,24 @@ def validate_ip(ip):
     """
     try:
         if len(ip) > 51:
-            raise ValueError("Invalid IP provided: %50s" % (ip))
+            raise BadRequest("Unable to parse ip: {}".format(ip))
+            #raise ValueError("Invalid IP provided: %50s" % (ip))
         version = AF_INET
         if ip.find(':') >= 0:
             version = AF_INET6
         inet_pton(version, ip)
     except SocketError:
-        raise ValueError("Invalid IP provided: {}".format(ip))
+        raise BadRequest("Unable to parse ip: {}".format(ip))
+        #raise ValueError("Invalid IP provided: {}".format(ip))
     return (ip, version)
 
 def validate_net(cidr):
     """ return a tuple (string, AF_INET) for 'IP/cidr' strings
         raise an exception if input is invalid
     """
+    if not '/' in cidr:
+        raise ValueError("Invalid net: {} Expects a CIDR IP/mask".format(cidr))
+
     ip, net = cidr.split('/')
     ip, version = validate_ip(ip)
     if version == AF_INET:
@@ -236,7 +278,7 @@ def validate_net(cidr):
             return (cidr, version)
         raise ValueError("Invalid IPv4 netmask {}".format(net))
     elif not (re.match(r'\d+', net) and int(net) < 128):
-        raise ValueError("Bad IPv6 netmask: {}".format(net))
+        raise ValueError("Invalid IPv6 netmask: {}".format(net))
     return (cidr, version)
 
 def md5(val):

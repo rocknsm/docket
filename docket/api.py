@@ -6,23 +6,34 @@ from resources.query import QueryRequest, ApiRequest, RawRequest
 from config import Config
 
 # Declare the blueprint
-api_bp = Blueprint('api', __name__)
-api    = Api(api_bp)
+api_bp = Blueprint('query', __name__)
+api = Api(api_bp)
 
 # Add resources
-WEB_ROOT = Config.get('WEB_ROOT', '/')
 # consider 'login_required' for queries
-api.add_resource(RawRequest, WEB_ROOT+'raw/<string:query>' )     # ex: /raw/host+1.2.3.4+port+80
-api.add_resource(QueryRequest,
-        WEB_ROOT+'q/<path:path>',                   # ex: GET  /q/host/1.2.3.4/port/80
-        WEB_ROOT,                                   # ex: POST / -d '{ "port":21, "after-ago":"1m" }'
-        )
-api.add_resource(ApiRequest,
-        WEB_ROOT+'<string:api>/<path:selected>',    # ex: GET /urls/ID,ID,...
-        WEB_ROOT+'<string:api>',
-        )
 
-#if __name__ == '__main__':
-#    app = Flask(__name__)
-#    app.register_blueprint(api_bp)
-#    app.run(debug=True)
+# RawRequest handles valid stenographer queries
+#   Get /raw/host+1.2.3.4+and+port+80
+#   POST /query -d 'host 1.2.3.4 and port 80'
+api.add_resource(RawRequest,
+                 '/raw/<query>/',               # GET  /raw/host+1.2.3.4+port+80
+                 '/query/',                     # POST /query -d 'host 1.2.3.4 port 21'
+                )
+
+# QueryRequest handles encoded queries
+#   GET /uri/name/value
+#   POST / Json or HTML Forms
+api.add_resource(QueryRequest,
+                 '/uri/<path:path>/',           # GET  /uri/host/1.2.3.4/port/80
+                 '/',                           # POST / -d '{ "port":21, "after-ago":"1m" }'
+                )
+
+# ApiRequest handles metadata requests
+#   GET /urls   GET /urls/d6c1e79adf9f46bf6187fd92fff016e5,734d929c61e64315b140cb7040115a70
+#   GET /ids    GET /ids/734d929c61e64315b140cb7040115a70,7065d7548b8e717b5bdac1d074e80b55
+#   GET /status GET /status/734d929c61e64315b140cb7040115a70,7065d7548b8e717b5bdac1d074e80b55
+#   GET /stats  GET /stats/sensor.1,sensor.2
+api.add_resource(ApiRequest,
+                 '/<api>/<path:selected>/',
+                 '/<api>/',
+                )

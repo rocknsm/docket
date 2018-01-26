@@ -19,7 +19,6 @@ LOG_LEVEL: info
 # LOG_FILE   a secondary logging handler - a file - will be created if this is set
 #LOG_FILE: /var/spool/docket/docket.log
 SPOOL_DIR: ./test/spool
-WEB_ROOT: /
 # TIME_WINDOW  specifies the size of a time 'chunk' in seconds for request de-duplication
 #              Requested times are widened to a multiple of this value.
 TIME_WINDOW: 60
@@ -34,17 +33,6 @@ QUERY_TIMEOUT: 720.0
 # MERGED_NAME   - base name (no extension) of the result capture file. Just a string.
 MERGED_NAME: merged
 # LONG_AGO      - The default 'after' clause is this many hours ago
-LONG_AGO: 24
+LONG_AGO: 24h
 # WEIGHTS       - each request is 'weighed'.  Exceptionally broad queries will tip the threshold unless 'ignore-weight' is present
 #               NOTE: Raw queries are not weighed or widened so only identical raw queries are deduplicated.
-WEIGHT_THRESHOLD: 1234567890
-WEIGHT_IP: 1
-WEIGHT_NET: 100
-WEIGHT_PORT: 1
-WEIGHT_HOUR: 60
-# DATE_FORMAT   - strftime format for showing a datetime to a user, not used yet
-DATE_FORMAT: '%Y%jT%H:%M:%S'
-# EXPIRE_TIME   - We guess data will be available for this long (seconds) when displaying expiration dates
-EXPIRE_TIME: 3600
-# ID_FORMAT:    - if set to a single dash '-' will use the standard GUID format for request IDs
-ID_FORMAT: false

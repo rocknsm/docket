@@ -1,0 +1,122 @@
+<!doctype html>
+<title>New Flask</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='pure-min.css') }}">
+<script src="{{ url_for('static', filename='jquery-3.2.1.js') }}"></script>
+<script type=text/javascript>
+var header = []
+function enqueue() {
+    $.ajax({
+        url: '/',
+        type: 'POST',
+        data: $('#form :input[value!=""]').filter(function (index, element) {
+            return $(element).val() != '';
+        }).serialize(),
+        success: addRow,
+        error: errorRow,
+    });
+}
+function search() {
+    $.ajax({
+        url: '/find/',
+        type: 'POST',
+        data: $('#form :input[value!=""]').filter(function (index, element) {
+            return $(element).val() != '';
+        }).serialize(),
+        success: addRows,
+        error: errorRow,
+    });
+}
+function errorRow(req, error, exception) {
+	if ( req.status && req.status == 502) {
+		$('#results').prepend("<tr><td>502</td><td>"+(new Date()).toUTCString()+"</td><td>"+this.error.arguments["0"].responseText+"</td><td>You found a bug</td></tr>");
+	}
+	else {
+		$('#results').prepend("<tr><td>"+req.status+"</td><td colspan=4>"+this.error.arguments["0"].responseText+"</td></tr>");
+	}
+}
+function addRow(rsp) {
+	var row = "<tr>";
+	$.each( header, function(index, dict) {
+		switch(dict["type"]){
+		case 'url':
+			row += "<td><a href='"+rsp[dict["key"]]+"'>"+rsp[dict["key"]]+"</a></td>";
+		break;
+		case 'id':
+			row += "<td><a href='../status/"+rsp[dict["key"]]+"/'>"+rsp[dict["key"]]+"</a></td>";
+		break;
+		default:
+			row += "<td>"+rsp[dict["key"]]+"</td>";
+		}
+	})
+	row+="</tr>";
+	$('#results').prepend(row);
+}
+function addRows(rsp) {
+	$.each( rsp, function ( i, d ) {
+		addRow(d);
+	})
+}
+function addHeader(hdr) {
+	var row = "<tr>";
+	header = hdr
+	$.each( hdr, function ( index, dict ) {
+		row += "<th>"+dict["str"]+"</th>";
+	})
+	row+="</tr>";
+	$('#resultHead').prepend(row);
+}
+</script>
+<body>
+<form class="pure-form pure-form-aligned" id=form >
+    <fieldset >
+        <legend>Query parameters</legend>
+        <div class="pure-control-group">
+            <!-- <label  for='host'>IP</label> -->
+            <input class="pure-u-md-1-3" name="host" type="text" placeholder="IP source">
+            <input class="pure-u-md-1-3" name="host" type="text" placeholder="IP dest">
+            <input class="pure-u-md-1-3" name="net" type="text" placeholder="CIDR: 127.0.0.1/8">
+        </div>
+
+        <div class="pure-control-group">
+            <!-- <label for='port'>Port</label> -->
+            <input class='pure-u-md-1-3' name="port" id="port" type="text" placeholder="Port src">
+            <input class='pure-u-md-1-3' name="port" id="port" type="text" placeholder="Port dst">
+        </div>
+
+        <div class="pure-control-group">
+            <label for="proto-name">Transport</label>
+            <select class='pure-u-md-1-5' name="proto-name" id="proto-name">
+                <option></option>
+                <option>TCP</option>
+                <option>UDP</option>
+                <option>ICMP</option>
+            </select>
+            <input class='pure-u-md-1-3' name="proto" id="proto" type="text" placeholder="protocol number">
+        </div>
+<!-- time /-->
+        <div class="pure-control-group">
+            <label for="after">Absolute Start</label>
+            <input name="after" id="after" type="text" placeholder="yyyy-mm-ddTHH:MM:SSZ">
+            <label for="before">Absolute End</label>
+            <input name="before" id="before" type="text" placeholder="yyyy-mm-ddTHH:MM:SSZ">
+        </div>
+        <div class="pure-control-group">
+            <label for="after-ago">Relative Start</label>
+            <input name="after-ago" id="after-ago" type="text" placeholder="1h 23m 45s">
+            <label for="before-ago">Relative End</label>
+            <input name="before-ago" id="before-ago" type="text" placeholder="1h 2m 3s">
+        </div>
+    </fieldset>
+    <button onclick="enqueue()" type="button" class="pure-button pure-button-primary">Enqueue</button>
+    <button onclick="search()" type="button" class="pure-button ">Search</button>
+</form>
+<table class='pure-table pure-table-striped' >
+	<thead id=resultHead>
+	</thead>
+	<tbody id=results>
+	</tbody>
+</table>
+<script>
+	addHeader( JSON.parse('{{Query.thead()|tojson}}'))
+</script>
+</body>

@@ -2,7 +2,7 @@
 from application import Application
 import os
 
-app = Application(config=os.environ)
+app = Application(environment=os.environ)
 celery = app.celery()
 
 import tasks

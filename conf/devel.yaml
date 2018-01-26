@@ -3,62 +3,87 @@
 STENOGRAPHER_INSTANCES:
     - { host: 127.0.0.1, sensor: sensor-1, port: 1234, key: /etc/stenographer/certs/client_key.pem, cert: /etc/stenographer/certs/client_cert.pem, ca: /etc/stenographer/certs/ca_cert.pem }
 
-# Flask config values
+# ==== Flask ====
+SECRET_KEY: CHANGE_THIS_SECRET_KEY_TO_ANY_RANDOM_VALUE
 DEBUG: true
 TESTING: true
-SECRET_KEY: CHANGE_THIS_SECRET_KEY_TO_ANY_RANDOM_VALUE
-SESSION_COOKIE_NAME: DOCKET_SESSION
-USE_X_SENDFILE: false
+#SESSION_COOKIE_NAME: DOCKET_SESSION
+#USE_X_SENDFILE: false
 
-# Celery configuration - CELERY_URL is many things :/
+# ==== Celery ====
+#CELERY_URL the broker for sharing celery queues across processes
 CELERY_URL: redis://localhost:6379
-# all results are simply written to disk, at the moment there's no need to care about brokering them
-CELERY_TASK_IGNORE_RESULT: true
 
-# Docket configuration
-# SPOOL_DIR     - where captures are saved and served - if you change this make sure to fix the webserver's static file configuration
-SPOOL_DIR: /var/spool/docket/
-# WEB_ROOT      - the base url for all docket requests: 
-# WEB_ROOT=/foo/ => http://HOST:PORT/foo/status, http://HOST:PORT/foo/q/after/5m/host/1.2.3.4
-WEB_ROOT: /
-# DATE_FORMAT   - strftime format for showing a datetime to a user, not used yet
-DATE_FORMAT: '%Y%jT%H:%M:%S'
-# Logging configuration
+# ==== Basic Docket Configuration ====
+# SPOOL_DIR where captures are saved and served 
+#           configure the webserver to serve SPOOL_DIR/[a-z0-9-]{32,}/MERGED_NAME.pcap
+#SPOOL_DIR: /var/spool/docket/
+
+# WEB_ROOT  the base url for all docket requests: default is unset
+#           http://HOST:PORT/foo/stats, http://HOST:PORT/foo/uri/host/1.2.3.4
+#WEB_ROOT: /foo 
+
+# ==== Logging ====
 LOGGER_NAME: docket
-# LOG_LEVEL  (error, warning, info, debug) any other value will be ignored
+# LOG_LEVEL  (critical, error, warning, info, debug) any other value will be ignored
 LOG_LEVEL: debug
+
+# Python log format strings:
 LOG_MSG_FORMAT: "[%(processName)-8s:%(thread)d] %(message)s"
 LOG_DATE_FORMAT: '%Y-%m-%dT%H:%M:%SZ'
 LOG_DATE_UTC: True
-# LOG_FILE   a secondary logging handler - this file will be rotated at midnight.
+# LOG_FILE   a secondary logging handler - this file will be rotated at midnight
 LOG_FILE: /var/log/docket/docket.log
-LOG_FILE_MSG_FORMAT: "%(asctime)s[%(processName)-8s:%(thread)d] %(message)s"
-#LOG_DATE_FORMAT: '%Y-%m-%dT%H:%M:%SZ'  # ISO
-LOG_FILE_DATE_FORMAT: '%Y%jT%H:%M:%S'
 LOG_FILE_LEVEL: debug
+LOG_FILE_MSG_FORMAT: "%(asctime)s[%(processName)-8s:%(thread)d] %(message)s"
+LOG_FILE_DATE_FORMAT: '%Y%jT%H:%M:%S'
 
+# ==== Query ====
 # TIME_WINDOW  Integer: specifies the size of a time 'chunk' in seconds for request de-duplication
 #              Requested times are widened to a multiple of this value.
 TIME_WINDOW: 60
+# EMPTY_RESULT capacity: the size of a pcap that contains packets (detects 'no matching packets')
+EMPTY_RESULT: 25B
+
+# MERGED_NAME   - base name (no extension) of the result capture file. Just a string.
+#MERGED_NAME: merged
+
+# QUERY_FILE    - base name of the query meta-data save file. Just a string.
+#QUERY_FILE: query
+
+#DOCKET_NO_REDIS - if True, docket will use files (instead of redis) to maintain query meta-data
+#DOCKET_NO_REDIS: False
+
+# LONG_AGO      - The default 'start-time' aka 'after' clause isn't 1970, but this long before now()
+#LONG_AGO: 24h
+
+# ==== Timeout ====
+# TIMEOUTs      - Docket queries will fail if stenoboxes are unresponsive. 
+#                 For each stenobox instance:
+#                   Docket remembers the last time it was idle. IDLE_TIME
+#                   If it is not Docket waits IDLE_SLEEP, then requests stats, repeat if not idle
+#                   If a stenobox had not become idle after QUERY_TIMEOUT, this instance FAILs.
+#
+#                   Once idle: a stenobox is queried and results are written to disk.
+#                   If the 'Requests' module times-out (QUERY_TIMEOUT), this instance FAILs.
+#
+#                   Results are shared with other Docket processes (Web, celery queues...)
+#                   This is subject to LOCK_TIMEOUT, which is never expected to happen
+#
 # IDLE_TIME     - 5.0, assume stenoboxes remain IDLE for 5 seconds and check again after that.
 # IDLE_SLEEP    - 2.0, wait time between IDLE queries. will occur at least once every IDLE_TIME.
-# STAT_TIMEOUT  - 3.0, assume a stenobox is broken if stats doesn't return within this many seconds
-# QUERY_TIMEOUT - 720, assume stenoboxes are broken if a query doesn't return within this many seconds
-# LOCK_TIMEOUT  - 2.0, seconds to wait on a file lock before giving up.
+# STAT_TIMEOUT  - 3.0, assume a stenobox is broken if we can't get stats within this many seconds
+# QUERY_TIMEOUT - 720, seconds. A query request will fail if stenobox doesn't complete this quickly
+# LOCK_TIMEOUT  - 2.0, seconds to wait on a IPC shared data (file) lock before giving up.
 IDLE_TIME: 5.0
 IDLE_SLEEP: 2.0
 STAT_TIMEOUT: 3.0
 QUERY_TIMEOUT: 720.0
 LOCK_TIMEOUT: 2.0
 
-# MERGED_NAME   - base name (no extension) of the result capture file. Just a string.
-MERGED_NAME: merged
-# QUERY_NAME    - base name of the query extended save file. Just a string.
-QUERY_NAME: query
-# LONG_AGO      - The default 'after' clause isn't 1970, but this long before now()
-LONG_AGO: 24h
 
-# WEIGHTS       - request 'weight' can be estimated to prevent clogging up the system.  
+# WEIGHTS       'Fat Finger' protection
+#               - request 'weight' can be estimated to prevent clogging up the system.  
 #               - Estimate the amount of data in the system (total buffered packet data)
 #               - Pick a threshold for a single request 1% * (TOTAL / 8 hours / 60 minutes / 5 requests per minute)
 #               - IPs  - the number of (active) IPs captured
@@ -69,23 +94,28 @@ LONG_AGO: 24h
 #  ex: a 5TB/8hour system, query: 1 IP and 1 port for 10 seconds == 381774 == 380KB
 #  5TB / (8 * 3600) * 10seconds / ( (50.0 * 1ip + 2 * 0net) * 100.0 * 1port )
 #               NOTE: Raw queries are not weighed or widened so only identical raw queries are deduplicated.
-#WEIGHT_TOTAL:     5TB      # valid quantifiers( B KB MB GB TB PB )
 #WEIGHT_THRESHOLD: 22MB     # valid quantifiers( B KB MB GB TB PB )
+#WEIGHT_TOTAL: 5TB      # valid quantifiers( B KB MB GB TB PB )
 #WEIGHT_IPS: 50.0
 #WEIGHT_NETS: 2.0
 #WEIGHT_PORTS: 100.0
 #WEIGHT_HOURS: 8.0
 
+# ==== EXPIRATION ====
 # EXPIRE_SPACE  - if set, the oldest items will be removed until this much space becomes available.
 # EXPIRE_TIME   - how long after last 'touch' does a request expire ?
 # CLEANUP_PERIOD - delete expired queries will run every CLEANUP_PERIOD seconds
-EXPIRE_SPACE: 100MB
+EXPIRE_SPACE: 500MB
 EXPIRE_TIME: 1h
 CLEANUP_PERIOD: 1h
 
-# ID_FORMAT:    - if set to a single dash '-' will use the standard GUID format for request IDs
-ID_FORMAT: false
+# ==== Formatting ====
+# DATE_FORMAT strftime format for showing a datetime to a user
+DATE_FORMAT: '%Y%jT%H:%M:%S'
+
+# ID_FORMAT: if True, IDs will contain dashes: https://en.wikipedia.org/wiki/Universally_unique_identifier
+UUID_FORMAT: false
 
 # Stop accepting requests if SPOOL_DIR's free space or nodes go below these values:
-FREE_BYTES: 100MB
+FREE_BYTES: 200MB
 FREE_NODES: 10111
