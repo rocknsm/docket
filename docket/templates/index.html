@@ -3,7 +3,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='pure-min.css') }}">
 <script src="{{ url_for('static', filename='jquery-3.2.1.js') }}"></script>
 <script type=text/javascript>
-var header = []
+var header = [];
+var ids_dict = {};
+var counter = 1;
 function enqueue() {
     $.ajax({
         url: '/',
@@ -37,17 +39,26 @@ function errorRow(req, error, exception) {
 function addRow(rsp) {
 	var row = "<tr>";
 	$.each( header, function(index, dict) {
+		if (row == "")
+			return;
 		switch(dict["type"]){
 		case 'url':
 			row += "<td><a href='"+rsp[dict["key"]]+"'>"+rsp[dict["key"]]+"</a></td>";
 		break;
 		case 'id':
+			if (ids_dict[rsp[dict["key"]]]){
+				row = "";
+				return;
+			}
+			ids_dict[rsp[dict["key"]]] = counter++;
 			row += "<td><a href='../status/"+rsp[dict["key"]]+"/'>"+rsp[dict["key"]]+"</a></td>";
 		break;
 		default:
 			row += "<td>"+rsp[dict["key"]]+"</td>";
 		}
 	})
+	if (row == "")
+		return;
 	row+="</tr>";
 	$('#results').prepend(row);
 }
@@ -72,15 +83,15 @@ function addHeader(hdr) {
         <legend>Query parameters</legend>
         <div class="pure-control-group">
             <!-- <label  for='host'>IP</label> -->
-            <input class="pure-u-md-1-3" name="host" type="text" placeholder="IP source">
-            <input class="pure-u-md-1-3" name="host" type="text" placeholder="IP dest">
-            <input class="pure-u-md-1-3" name="net" type="text" placeholder="CIDR: 127.0.0.1/8">
+            <input class="pure-u-md-1-3" name="host" type="text" placeholder="IP source" title="IPv4 or IPv6 address">
+            <input class="pure-u-md-1-3" name="host" type="text" placeholder="IP dest" title="IPv4 or IPv6 address">
+            <input class="pure-u-md-1-3" name="net" type="text" placeholder="CIDR: 127.0.0.1/8" title="IPv4 or IPv6 address '/' number of bits for the 'network' portion of the address">
         </div>
 
         <div class="pure-control-group">
             <!-- <label for='port'>Port</label> -->
-            <input class='pure-u-md-1-3' name="port" id="port" type="text" placeholder="Port src">
-            <input class='pure-u-md-1-3' name="port" id="port" type="text" placeholder="Port dst">
+            <input class='pure-u-md-1-3' name="port" id="port" type="text" placeholder="Port src" title="TCP or UDP port number">
+            <input class='pure-u-md-1-3' name="port" id="port" type="text" placeholder="Port dst" title="TCP or UDP port number">
         </div>
 
         <div class="pure-control-group">
@@ -96,15 +107,15 @@ function addHeader(hdr) {
 <!-- time /-->
         <div class="pure-control-group">
             <label for="after">Absolute Start</label>
-            <input name="after" id="after" type="text" placeholder="yyyy-mm-ddTHH:MM:SSZ">
+            <input name="after" id="after" type="text" placeholder="yyyy-mm-ddTHH:MM:SSZ" title="ISO date - When capture should start">
             <label for="before">Absolute End</label>
-            <input name="before" id="before" type="text" placeholder="yyyy-mm-ddTHH:MM:SSZ">
+            <input name="before" id="before" type="text" placeholder="yyyy-mm-ddTHH:MM:SSZ" title="ISO date - When capture ended">
         </div>
         <div class="pure-control-group">
             <label for="after-ago">Relative Start</label>
-            <input name="after-ago" id="after-ago" type="text" placeholder="1h 23m 45s">
+            <input name="after-ago" id="after-ago" type="text" placeholder="1h 23m 45s ago" title="How long ago to 'start' the capture">
             <label for="before-ago">Relative End</label>
-            <input name="before-ago" id="before-ago" type="text" placeholder="1h 2m 3s">
+            <input name="before-ago" id="before-ago" type="text" placeholder="1h 2m 3s ago" title="How long ago to 'end' the capture">
         </div>
     </fieldset>
     <button onclick="enqueue()" type="button" class="pure-button pure-button-primary">Enqueue</button>

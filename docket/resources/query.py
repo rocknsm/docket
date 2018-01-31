@@ -75,6 +75,8 @@ class Query:
         'ip' : Config.get('WEIGHT_IPS', 50.0),
     }
 
+
+    # TIME_RX = re.compile(r'after (?P<after>\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ) and before (?P<before>\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ)')
     EMPTY_THRESHOLD = parse_capacity(Config.get('EMPTY_THRESHOLD', '25B'))
     # Query.events can have a 'state': states are used to filter events for display
     RECEIVING = 'Requesting'
@@ -389,10 +391,20 @@ class Query:
                 # sometimes query meta data is incomplete, usually when I'm break^H^H^H^H^Htesting.
                 continue
             for k,v in fields.items():
-                if k in ('after-ago', 'before-ago', 'before', 'after'):
-                    # Todo handle times
-                    # regex before <time>, after <time>, convert both sets, compare
-                    continue
+                if k in ('after-ago', 'after', 'before-ago', 'before'):
+                    dur = parse_duration(v)
+                    if dur:
+                        v = (datetime.utcnow() - dur)
+                    else:
+                        v = inputs.datetime_from_iso8601(v)
+                        pass
+                    if (q.queried < v) and k in ('after-ago', 'after'):
+                        q = None
+                        break
+                    elif (q.queried > v) and k in ('before-ago', 'before'):
+                        q = None
+                        break
+                    pass
                 elif k in ('sensors', 'limit-packets', 'limit-bytes'):
                     continue
                 elif k not in q.query:

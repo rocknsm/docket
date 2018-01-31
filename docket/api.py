@@ -13,7 +13,7 @@ api = Api(api_bp)
 # consider 'login_required' for queries
 
 # RawRequest handles valid stenographer queries
-#   Get /raw/host+1.2.3.4+and+port+80
+#   GET /raw/host+1.2.3.4+and+port+80
 #   POST /query -d 'host 1.2.3.4 and port 80'
 api.add_resource(RawRequest,
                  '/raw/<query>/',               # GET  /raw/host+1.2.3.4+port+80

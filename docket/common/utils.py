@@ -12,36 +12,6 @@ import re
 from config import Config
 
 FreeSpace = namedtuple('FreeSpace', ['bytes', 'nodes'] )
-
-HOURS   = r'(?P<hours>[\d.]+)\s*(?:h)'
-MINUTES = r'(?P<minutes>[\d.]+)\s*(?:m)'
-SECONDS = r'(?P<seconds>[\d.]+)\s*(:?s)'
-MILLIS  = r'(?P<millis>[\d.]+)\s*(:?ms)'
-MICROS  = r'(?P<micros>[\d.]+)\s*(:?us)'
-
-OPT     = lambda x: r'(?:{x}\s*)?'.format(x=x)
-
-TIMEFORMATS = [
-        r'{HOURS}\s*{MINUTES}\s*{SECONDS}\s*{MILLIS}\s*{MICROS}\s*'.format(
-            HOURS=OPT(HOURS),
-            MINUTES=OPT(MINUTES),
-            SECONDS=OPT(SECONDS),
-            MILLIS=OPT(MILLIS),
-            MICROS=OPT(MICROS)
-            ),
-        ]
-
-TIME_UNITS = dict([
-    ('weeks',   60 * 60 * 24 * 7),
-    ('days',    60 * 60 * 24),
-    ('hours',   60 * 60),
-    ('minutes', 60),
-    ('seconds', 1),
-    ('millis',  0.001),
-    ('micros',  0.000001),
-])
-
-
 ISOFORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 try:
@@ -53,33 +23,35 @@ except NameError:
         return isinstance(s, str)
 
 
-
+DURATIONS= {'US': 0.000001,
+            'MS': 0.001,
+            'S' : 1,
+            'M' : 60, 
+            'H' : 60*60,
+            'D' : 60*60*24,
+            'W' : 60*60*24*7, }
+RX_DURATION = re.compile(r'|'.join([r'(?:(?P<{}>[\d.]+)\s*'
+                                    r'(?:{}|{}))'.format(k, k, k.lower())
+                                    for k,v in DURATIONS.items()]))
 def parse_duration(s):
-    """ parse a single user provided 'duration' string
-        and return the number of seconds it represents
-        TODO: out of order durations get ignored
-    """
+    total = 0
     if type(s) in (int, float):
-        return timedelta(seconds=s)
-    if not is_str(s):
-        #raise ValueError("Unable to parse duration: {}".format(s))
-        raise BadRequest("Unable to parse duration: {}".format(s))
-    for timefmt in TIMEFORMATS:
-        #Config.logger.debug("timefmt is {}".format(timefmt))
-        match = re.match(r'\s*' + timefmt + r'\s*$', s, re.I)
-        #Config.logger.debug("Match is {}".format(match))
-        if match and match.group(0).strip():
-            mdict = match.groupdict()
-            return timedelta(seconds=sum(
-                [TIME_UNITS[k] * float(v) for (k, v) in
-                list(mdict.items()) if v is not None]))
+        total, s = s, ''
+    elif not is_str(s):
+        return None
+    for it in RX_DURATION.finditer(s):
+        for k,v in it.groupdict().items():
+            if v:
+                total += DURATIONS[k] * float(v)
+    return timedelta(seconds=total or float(s))
+
 
 CAPACITIES = {'B': 1,
               'KB':1024, 
               'MB':1024**2, 
               'GB':1024**3,
               'TB':1024**4,
-              'PB':1024**5}
+              'PB':1024**5, }
 RX_CAPACITY = re.compile(r'|'.join([r'(?:(?P<{}>[\d.]+)\s*'
                                     r'(?:{}|{}))'.format(k, k, k.lower())
                                     for k,v in CAPACITIES.items()]))

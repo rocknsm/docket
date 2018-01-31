@@ -34,6 +34,10 @@ class testConfig(unittest.TestCase):
 class testUtils(unittest.TestCase):
     def test_parse_duration(self):
         self.assertEqual(parse_duration("20.5h 25m 300s").total_seconds(), 3600 * 21)
+        self.assertEqual(parse_duration("1d ago").total_seconds(), 3600 * 24)
+        self.assertEqual(parse_duration("1w 1d").total_seconds(), 3600 * 24 * 8)
+        self.assertEqual(parse_duration("5").total_seconds(), 5)
+        self.assertEqual(parse_duration("3.15").total_seconds(), 3.15)
 
     def test_parse_capacity(self):
         self.assertEqual(parse_capacity(100), 100)
