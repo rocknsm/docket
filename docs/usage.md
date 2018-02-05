@@ -16,10 +16,10 @@ just want shorthand usage with curl, this is the interface for you. Docket
 supports arbitrary GET queries using following translations to the Stenographer
 API. All terms are AND'd together to refine the query. The API does not
 currently support OR semantics. Time intervals may be expressed with any
-combination of: h or m
+combination of: [ us: microseconds, ms: milliseconds, s: seconds, m: minutes, h: hours, d: days, w:weeks ]
 Note that `host`, `net`, and `port` accept one or two values, as shown.
 
-The API endpoint here is `/pcap/` followed by the URI
+The API endpoint here is `/uri/` followed by the URI
  queries listed below.
 
 ```
@@ -40,7 +40,7 @@ The API endpoint here is `/pcap/` followed by the URI
 
 #### Example query using curl
 ```
-$ curl -s localhost:8080/pcap/host/192.168.254.201/port/53/udp/after/3m/ | tcpdump -nr -
+$ curl -s localhost:8080/uri/host/192.168.254.201/port/53/udp/after/3m/ | tcpdump -nr -
 reading from file -, link-type EN10MB (Ethernet)
 15:38:00.311222 IP 192.168.254.201.31176 > 205.251.197.49.domain: 52414% [1au] A? ping.example.net. (47)
 15:38:00.345042 IP 205.251.197.49.domain > 192.168.254.201.31176: 52414*- 8/4/1 A 198.18.249.85, A 198.18.163.178, ...
@@ -83,7 +83,7 @@ after-ago=3.5h -> 'after 210m ago'
 
 #### Example query using curl (form-encoded):
 ```
-$ curl -s -XPOST localhost:8080/api/ -d 'host=192.168.254.201' -d 'proto-name=udp' -d 'port=53' -d 'after-ago=3m' | tcpdump -nr -
+$ curl -s -XPOST localhost:8080/ -d 'host=192.168.254.201' -d 'proto-name=udp' -d 'port=53' -d 'after-ago=3m' | tcpdump -nr -
 reading from file -, link-type EN10MB (Ethernet)
 15:38:00.311222 IP 192.168.254.201.31176 > 205.251.197.49.domain: 52414% [1au] A? ping.example.net. (47)
 15:38:00.345042 IP 205.251.197.49.domain > 192.168.254.201.31176: 52414*- 8/4/1 A 198.18.249.85, A 198.18.163.178, ...
@@ -93,7 +93,7 @@ reading from file -, link-type EN10MB (Ethernet)
 This interface also supports JSON-encoded queries (requires content-type header)
 
 ```
-curl -s -XPOST localhost:8080/api/ -H 'Content-Type: application/json' -d '
+curl -s -XPOST localhost:8080/ -H 'Content-Type: application/json' -d '
 { "host": "192.168.254.201", "proto-name": "udp", "port": 53, "after-ago": "3m" }' | tcpdump -nr -
 reading from file -, link-type EN10MB (Ethernet)
 16:16:32.700658 IP 192.168.254.201.50169 > 205.251.195.137.domain: 27094% [1au] A? ping.example.net. (47)

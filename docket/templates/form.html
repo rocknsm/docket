@@ -1,45 +1,51 @@
-<html>
-<head>
-<title>Docket</title>
-<!-- <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous"> /-->
-<link rel="stylesheet" href="/css/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+{% extends "gui.html" %}
+{% block body %}
 <script>
-function disableEmptyInputs(form) {
-  var controls = form.elements;
-  for (var i=0, iLen=controls.length; i<iLen; i++) {
-    controls[i].disabled = controls[i].value == '';
-  }
-}
+
+$(function() {
+	$('a#submit').bind('click', function() {
+		var controls = form.elements;
+		for (var i=0, iLen=controls.length; i<iLen; i++) {
+			if (controls[i].value == '')
+				controls[i].disabled = true;
+		}
+		uri = $( "form" ).serialize();
+
+		var json = getJSON('/uri/'+uri, 	host: $('input[name="hostsrc" TODO' ));
+		var content = [];
+
+        return { 'id': self.id, 'time' : self.time_requested(), 'query': self.query, 'url' : self.pcap_url }
+		for (var i = 0; i < json
+		// content = ...?
+		// $('element').prepend( content )
 </script>
 
-</head>
-<body>
-<form onsubmit="disableEmptyInputs(this)" class="pure-form pure-form-aligned" action="http://127.0.0.1:8080/api/" method="post">
+<form class="pure-form pure-form-aligned">
     <fieldset>
         <div class="pure-control-group">
             <label for="host">Source IP</label>
-            <input name="host" id="host" type="text" placeholder="127.0.0.1">
+            <input name="host" id="host" type="text" placeholder="1.2.3.4">
         </div>
 
         <div class="pure-control-group">
             <label for="host">Destination IP</label>
-            <input name="host" id="host" type="text" placeholder="127.0.0.1">
+            <input name="host" id="host" type="text" placeholder="4.3.2.1">
         </div>
 
         <div class="pure-control-group">
             <label for="net">Network</label>
-            <input name="net" id="net" type="text" placeholder="127.0.0.1/8">
+            <input name="net" id="net" type="text" placeholder="1.0.0.0/8">
             <span class="pure-form-message-inline">Specify an IP and CIDR mask.</span>
         </div>
 <!-- port /-->
         <div class="pure-control-group">
             <label for="port">Source Port</label>
-            <input name="port" id="port" type="text" placeholder="31337">
+            <input name="port" id="port" type="text" placeholder="8">
         </div>
 
         <div class="pure-control-group">
             <label for="port">Destination Port</label>
-            <input name="port" id="port" type="text" placeholder="8000">
+            <input name="port" id="port" type="text" placeholder="65535">
         </div>
 <!-- proto-name /-->
            <div class="pure-control-group">
@@ -74,21 +80,23 @@ function disableEmptyInputs(form) {
 <!-- before-ago /-->
         <div class="pure-control-group">
             <label for="before-ago">Before Time Range</label>
-            <input name="before-ago" id="before-ago" type="text" placeholder="45m">
+            <input name="before-ago" id="before-ago" type="text" placeholder="3h 45m">
             <span class="pure-form-message-inline">Specify an integer with <code>m</code> (minutes) or <code>h</code> (hours).</span>
         </div>
 <!-- after-ago /-->
         <div class="pure-control-group">
             <label for="after-ago">After Time Range</label>
-            <input name="after-ago" id="after-ago" type="text" placeholder="45m">
+            <input name="after-ago" id="after-ago" type="text" placeholder="1h 1m 30s">
             <span class="pure-form-message-inline">Specify an integer with <code>m</code> (minutes) or <code>h</code> (hours).</span>
         </div>
         <div class="pure-controls">
-            <label for="cb" class="pure-checkbox">
-                <input id="cb" type="checkbox"> I solemnly swear I am up to no good.
+            <label for="ignore" class="pure-checkbox">
+                <input name="ignore_limits" id="ignore-limits" type="checkbox"> ignore limits
             </label>
 
-            <button type="submit" class="pure-button pure-button-primary">Submit</button>
+	    <a href=# id=submit>
+            <button class="pure-button pure-button-primary">Submit</button>
+	    </a>
         </div>
     </fieldset>
 </form>

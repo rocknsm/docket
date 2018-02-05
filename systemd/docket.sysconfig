@@ -1,2 +1,2 @@
-APP_CONFIG=prod
+DOCKET_CONF=/etc/docket/docket.yaml
 SPOOL_DIR=/var/spool/docket/

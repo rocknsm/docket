@@ -1,7 +1,7 @@
 %global _docketdir /opt/rocknsm/docket
 
 Name:           docket
-Version:        0.1.1
+Version:        0.2.1
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -17,7 +17,6 @@ Requires(pre):  shadow-utils
 
 Requires:       python2-flask
 Requires:       python2-flask-restful
-Requires:       python-flask-script
 Requires:       python2-celery
 Requires:       python-redis
 Requires:       python-requests
@@ -52,10 +51,12 @@ mkdir -p %{buildroot}/%{_presetdir}
 
 # Install docket files
 cp -a docket/. %{buildroot}/%{_docketdir}/docket/.
+# ? FIXME - is this right?
 cp -a conf/. %{buildroot}/%{_sysconfdir}/docket/.
 install -p -m 644 systemd/docket.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket.socket  %{buildroot}%{_unitdir}/
-install -p -m 644 systemd/docket-celery.service %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket-celery-query.service %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket-celery-io.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}%{_tmpfilesdir}/%{name}.conf
 install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/docket/
 install -p -m 644 systemd/docket.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/%{name}
@@ -74,13 +75,13 @@ getent passwd %{name} >/dev/null || \
 exit 0
 
 %post
-%systemd_post docket.socket docket.service docket-celery.service
+%systemd_post docket.socket docket.service docket-celery-query.service docket-celery-io.service
 
 %preun
-%systemd_preun docket.socket docket.service docket-celery.service
+%systemd_preun docket.socket docket.service docket-celery-query.service docket-celery-io.service
 
 %postun
-%systemd_postun_with_restart docket.socket docket.service docket-celery.service
+%systemd_postun_with_restart docket.socket docket.service docket-celery-query.service docket-celery-io.service
 
 %files
 %defattr(0644, root, root, 0755)
@@ -112,6 +113,21 @@ exit 0
 %doc contrib/docket_lighttpd_vhost.conf
 
 %changelog
+* Mon Jan 08 2018 Jeffrey Kwasha <JeffKwasha@users.noreply.github.com> 0.2.1-1
+- Requests are queued to improve stenographer performance and squash docket CPU spikes
+- Queries now return JSON: query, id, url where the capture will be created, queue time.
+- Parallelized queries to stenographer instances 
+- New API: /urls - a JSON dictionary of id : url for all available captures
+- New API: /ids - a JSON list of ids for active and completed queries 
+- New API: /status - JSON: the state of active and completed queries
+- New API: /cleanup - ignores CLEANUP_PERIOD and runs immediately
+- New GUI: /gui - an HTML form with a dynamic stack of queries made with links
+- More helpful error messages and better 'front-end' request validation.
+- improved cleanup - query expiration is configurable by time, free space, frequency
+- improved logging and error handling
+- config options now understand 'capacity' ('2MB') and 'duration' ('30s') depending on the option
+- Result captures are served directly by nginx
+
 * Fri Dec 01 2017 Derek Ditch <derek@rocknsm.io> 0.1.1-1
 - Fixes lingering permission issues with systemd. (derek@rocknsm.io)
 

@@ -1,0 +1,19 @@
+[Unit]
+Description=Docket celery query worker
+After=syslog.target
+Wants=redis.service
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/docket
+ExecStart=/usr/bin/celery worker --app manage.celery -c 1 -l info -Q query
+User=docket
+Group=docket
+Restart=on-failure
+Type=simple
+#StandardOutput=syslog
+#StandardError=syslog
+NotifyAccess=all
+WorkingDirectory=/opt/rocknsm/docket/docket
+
+[Install]
+WantedBy=multiuser.target

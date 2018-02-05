@@ -1,16 +1,17 @@
 [Unit]
-Description=Docket uWSGI app
+Description=Docket IO worker
 After=syslog.target
 Wants=redis.service
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/docket
-ExecStart=/usr/bin/celery worker --app manage.celery -l info
+ExecStart=/usr/bin/celery worker --app manage.celery -c 1 -l info -Q io,celery
 User=docket
 Group=docket
 Restart=on-failure
 Type=simple
-StandardError=syslog
+#StandardOutput=syslog
+#StandardError=syslog
 NotifyAccess=all
 WorkingDirectory=/opt/rocknsm/docket/docket
 
