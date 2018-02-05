@@ -32,7 +32,7 @@ Docket does not currently have a hard dependency on `nginx` because you could fe
 
 ## Configuration
 Docket is configured in a simple YAML file located at
-`/opt/rocknsm/docket/conf/prod.yaml`. Docket knows to read this file on startup from the `DOCKET_CONF` variable stored in `/etc/sysconfig/docket`.
+`/etc/docket/prod.yaml`. Docket knows to read this file on startup from the `DOCKET_CONF` variable stored in `/etc/sysconfig/docket`.
 
 Now, open the `prod.yaml` file and make any necessary edits. Likely all you should change here is the `SECRET_KEY` to something random and unique per installation. See the [Flask docs](http://flask.pocoo.org/docs/0.12/api/#flask.Flask.secret_key) for more information.
 
@@ -40,7 +40,7 @@ _Example using `pwgen` utility_
 ```
 sudo yum install -y pwgen
 sudo sed -i "/^SECRET_KEY/s/: .*\$/: $(pwgen -s 64 1)/" \
- /opt/rocknsm/docket/conf/prod.yaml
+ /etc/docket/prod.yaml
 # Stop current services and reload the socket
 sudo systemctl stop docket.service
 sudo systemctl restart docket.socket
