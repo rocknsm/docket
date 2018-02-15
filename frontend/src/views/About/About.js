@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Card, CardHeader, CardBody} from 'reactstrap';
+import {Card, CardHeader, CardBody, ListGroup, ListGroupItem, ListGroupItemText, ListGroupItemHeading} from 'reactstrap';
 
 class About extends Component {
 
@@ -29,8 +29,22 @@ class About extends Component {
         </Card>
 
         <Card>
+        <CardHeader>
+        Third Party Software
+        </CardHeader>
         <CardBody>
-        This application uses the following open source projects:
+        <p>This application uses source code from the following projects:</p>
+
+        <ListGroup>
+        <ListGroupItem>
+        <ListGroupItemHeading>
+          <a href="https://github.com/mrholek/CoreUI-React/">CoreUI - React</a>
+        </ListGroupItemHeading>
+        <ListGroupItemText>
+          Copyright (c) 2018 creativeLabs Łukasz Holeczek.
+        </ListGroupItemText>
+        </ListGroupItem>
+        </ListGroup>
         </CardBody>
         </Card>
       </div>
