@@ -2,8 +2,53 @@ import React, { Component } from 'react';
 import {Card, CardHeader, CardBody, Table} from 'reactstrap';
 
 class Jobs extends Component {
+  constructor() {
+    super();
+    this.state = {
+      jobs: [],
+      status: {},
+      urls: {},
+    };
+  }
+
+  componentDidMount() {
+    var Config = require('Config');
+
+    var statusApi = fetch( Config.serverUrl + '/status/' )
+      .then(results => {
+        return results.json();
+      })
+
+    var urlsApi = fetch( Config.serverUrl + '/urls/' )
+      .then(results => {
+        return results.json();
+      })
+
+    Promise.all([statusApi, urlsApi]).then( values => {
+      var status = values[0];
+      var urls = values[1];
+
+      this.setState({'status': status, 'urls': urls});
+
+      let jobs = Object.entries(status).map(([key, value], index) => {
+        return (
+          <tr key={ key }>
+            <th scope="row">{ index + 1 }</th>
+              <td>{ value.events[0][0] }</td>
+            <td>{key}</td>
+            <td>TODO - Query</td>
+            <td>{ value.state }</td>
+            <td>{ key in urls ? <a href={ urls[key] }>Get PCAP</a> : "Unavailable"}</td>
+          </tr>
+        )
+      })
+      this.setState({'jobs': jobs});
+    })
+  }
 
   render() {
+    /* Use jQuery to retrieve job data */
+
     return (
       <div className="animated fadeIn">
         <Card>
@@ -18,14 +63,7 @@ class Jobs extends Component {
             <th>URL</th>
           </tr></thead>
           <tbody>
-            <tr>
-              <th scope="row">1</th>
-              <td>2018-02-09 17:45:32</td>
-              <td>abcdef-12345-67890</td>
-              <td>host 1.2.3.4 and host 7.8.9.1</td>
-              <td>Complete</td>
-              <td><a href="#">abcdef-12345-67890.pcap</a></td>
-            </tr>
+          { this.state.jobs }
           </tbody>
         </Table>
         </CardBody>
