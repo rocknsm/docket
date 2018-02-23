@@ -69,7 +69,6 @@ class Application(object):
 
     def _set_blueprints(self):
         from api import api_bp
-        from ui import ui_bp
         self.flask_app.register_blueprint(api_bp, url_prefix=Config.get('WEB_ROOT', '/api'))
 
     def _configure_app(self, env):
