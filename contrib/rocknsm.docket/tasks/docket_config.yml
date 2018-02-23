@@ -1,33 +1,10 @@
 ---
 # TODO: Move this to `/etc/docket` by default
-- name: docket | render production docket config
-  set_fact:
-    docket_prod_config: "{{ lookup('template', 'docket_prod.yaml.j2') }}"
-
 - name: docket | set production docket config
-  blockinfile:
+  template:
+    src:  docket_prod.yaml.j2
     dest: /etc/docket/prod.yaml
-    content: "{{ docket_prod_config }}"
-    state: present
   notify:
-    - docket | restart docket uwsgi
-    - docket | restart docket celery
-
-- name: docket | check for secret key
-  command: "/bin/awk '/^SECRET_KEY: [a-zA-Z0-9]{64}/' /etc/docket/prod.yaml"
-  register: docket_check_secretkey
-  changed_when: false
-
-- name: docket | set docket secret key
-  lineinfile:
-    dest: /etc/docket/prod.yaml
-    regexp: "^SECRET_KEY: [a-zA-Z0-9]{64}"
-    line: "SECRET_KEY: {{ docket_secret }}"
-    state: present
-  notify:
-    - docket | restart docket uwsgi
-    - docket | restart docket celery
-  when: docket_check_secretkey.stdout_lines|length == 0
 
 - name: docket | enable redis
   service:
@@ -35,11 +12,14 @@
     enabled: yes
   notify: docket | restart redis
 
-- name: docket | enable docket celery service
+- name: docket | enable docket celery services
   service:
-    name: docket-celery
+    name: "{{ item }}"
     enabled: yes
   notify: docket | restart docket celery
+  with_items:
+    - docket-celery-io
+    - docket-celery-query
 
 - name: docket | enable docket uwsgi service
   service:

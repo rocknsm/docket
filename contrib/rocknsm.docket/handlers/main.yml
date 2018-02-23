@@ -17,19 +17,27 @@
 - name: docket | restart redis
   service:
     name: redis
-    state: restarted
+    state: restart
 
 - name: docket | restart docket celery
   service:
-    name: docket-celery
-    state: restarted
+    name: "{{ item }}"
+    state: restart
+  with_items:
+    - docket-celery-io
+    - docket-celery-query
 
 - name: docket | restart docket uwsgi
   service:
     name: docket
-    state: restarted
+    state: restart
 
 - name: docket | restart lighttpd
   service:
     name: lighttpd
-    state: restarted
+    state: restart
+
+- name: docket | cleanup {{ ansible_cache }} dir
+  file:
+    name: "{{ ansible_cache }}/"
+    state: absent

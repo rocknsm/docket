@@ -10,7 +10,7 @@
     repo_gpgcheck: no
     skip_if_unavailable: yes
     enabled: yes
-  when: ansible_hostname in groups['docket'] and docket_install == "yumrepo"
+  when: inventory_hostname in groups['docket'] and docket_install == "yumrepo"
 
 - name: docket | install packages
   yum:
@@ -18,4 +18,4 @@
       - docket
       - lighttpd
     state: latest
-  when: ansible_hostname in groups['docket']
+  when: inventory_hostname in groups['docket']

@@ -42,7 +42,6 @@ class Stats extends Component {
     Promise.all([statsApi, ]).then( values => {
       var stats = values[0];
 
-      let entries
     })
 
     clearInterval(this.interval);
