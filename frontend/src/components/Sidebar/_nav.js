@@ -38,11 +38,11 @@ export default {
       //   text: 'NEW'
       // }
     },
-    {
-      name: 'Stats',
-      url: '/stats',
-      icon: 'fa fa-tachometer'
-    },
+    // {
+    //   name: 'Stats',
+    //   url: '/stats',
+    //   icon: 'fa fa-tachometer'
+    // },
     {
       name: 'About Docket',
       url: '/about',

@@ -19,8 +19,43 @@
  *
  */
 import React, { Component } from 'react';
+import {Card, CardHeader, CardBody, ListGroup, ListGroupItem, ListGroupItemHeading, ListGroupItemText} from 'reactstrap';
 
 class Stats extends Component {
+  constructor() {
+    super();
+    this.state = {
+      interval: null,
+    };
+
+    this.updateData = this.updateData.bind(this);
+  }
+
+  updateData() {
+    var Config = require('Config');
+
+    var statsApi = fetch( Config.serverUrl + '/stats/' )
+      .then(results => {
+        return results.json();
+      })
+
+    Promise.all([statsApi, ]).then( values => {
+      var stats = values[0];
+
+      let entries
+    })
+
+    clearInterval(this.interval);
+
+  }
+
+  componentDidMount() {
+    this.interval = setInterval(this.updateData, 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
+  }
 
   render() {
     return (
@@ -36,7 +71,7 @@ class Stats extends Component {
         sensor-001
       </ListGroupItemHeading>
       <ListGroupItemText>
-        Copyright (c) 2018 creativeLabs Łukasz Holeczek.
+        Oldest PCAP: blah
       </ListGroupItemText>
       </ListGroupItem>
       </ListGroup>

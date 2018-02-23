@@ -28,6 +28,7 @@ import Footer from '../../components/Footer/';
 
 import Query from '../../views/Query/';
 import Jobs from '../../views/Jobs/';
+import Status from '../../views/Status/';
 import Stats from '../../views/Stats/';
 import About from '../../views/About/';
 
@@ -44,6 +45,7 @@ class Full extends Component {
               <Switch>
                 <Route path="/query" name="Query" component={Query}/>
                 <Route path="/jobs" name="Jobs" component={Jobs}/>
+                <Route path="/status/:queryId" component={Status}/>
                 <Route path="/stats" name="Stats" component={Stats}/>
                 <Route path="/about" name="About" component={About}/>
                 <Redirect from="/" to="/query"/>

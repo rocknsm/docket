@@ -19,6 +19,7 @@
  *
  */
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 import {Card, CardHeader, CardBody, Table} from 'reactstrap';
 
 class Jobs extends Component {
@@ -26,15 +27,18 @@ class Jobs extends Component {
     super();
     this.state = {
       jobs: [],
-      status: {},
+      entries: [],
       urls: {},
+      interval: null,
     };
+
+    this.updateTable = this.updateTable.bind(this);
   }
 
-  componentDidMount() {
+  updateTable() {
     var Config = require('Config');
 
-    var statusApi = fetch( Config.serverUrl + '/status/' )
+    var statusApi = fetch( Config.serverUrl + '/jobs/' )
       .then(results => {
         return results.json();
       })
@@ -45,25 +49,44 @@ class Jobs extends Component {
       })
 
     Promise.all([statusApi, urlsApi]).then( values => {
-      var status = values[0];
+      var jobs = values[0];
       var urls = values[1];
 
-      this.setState({'status': status, 'urls': urls});
+      console.log(urls)
 
-      let jobs = Object.entries(status).map(([key, value], index) => {
+      jobs.sort(function(a,b) { return (a.time > b.time) });
+
+      this.setState({'jobs': jobs, 'urls': urls});
+
+      let entries = Object.entries(jobs).map((entry, index) => {
+
         return (
-          <tr key={ key }>
+          <tr key={ entry[1].id }>
             <th scope="row">{ index + 1 }</th>
-              <td>{ value.events[0][0] }</td>
-            <td>{key}</td>
-            <td>TODO - Query</td>
-            <td>{ value.state }</td>
-            <td>{ key in urls ? <a href={ urls[key] }>Get PCAP</a> : "Unavailable"}</td>
+              <td>{ entry[1].time }</td>
+            <td>{
+              <Link to={"/status/"+entry[1].id}
+                title={"Status for " + entry[1].id.substring(0, 6) }>
+                {entry[1].id.substring(0, 6)}
+              </Link>
+           }</td>
+            <td>{ entry[1].query }</td>
+            <td>{ entry[1].state }</td>
+            <td>{ entry[1].id in urls ? <Link to={ urls[entry[1].id] }>Get PCAP</Link> : "Unavailable"}</td>
           </tr>
         )
       })
-      this.setState({'jobs': jobs});
+
+      this.setState({'entries': entries});
     })
+  }
+
+  componentDidMount() {
+    this.interval = setInterval(this.updateTable, 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval);
   }
 
   render() {
@@ -83,7 +106,7 @@ class Jobs extends Component {
             <th>URL</th>
           </tr></thead>
           <tbody>
-          { this.state.jobs }
+          { this.state.entries }
           </tbody>
         </Table>
         </CardBody>

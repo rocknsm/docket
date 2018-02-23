@@ -20,7 +20,9 @@
  */
 const routes = {
   '/': 'Home',
-  '/dashboard': 'Dashboard',
   '/query': 'Query',
+  '/jobs': 'Jobs',
+  '/stats': 'Stats',
+  '/status': 'Status',
 };
 export default routes;

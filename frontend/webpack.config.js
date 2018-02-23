@@ -54,9 +54,9 @@ module.exports = (env = {}) => {
     },
     externals: {
       'Config': JSON.stringify(env.ENV === 'production' ? {
-        serverUrl: "/api"
+        serverUrl: "api/"
       } : {
-        serverUrl: "/api"
+        serverUrl: "api/"
       })
     },
     module: {

@@ -37,6 +37,7 @@
     "font-awesome": "4.7.0",
     "history": "4.7.2",
     "moment": "^2.20.1",
+    "pretty-bytes": "^4.0.2",
     "react": "16.2.0",
     "react-chartjs-2": "2.7.0",
     "react-dom": "16.2.0",
