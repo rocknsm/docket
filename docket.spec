@@ -1,5 +1,10 @@
 %global _docketdir /opt/rocknsm/docket
 
+%if 0%{?epel} <= 7
+%define scl rh-nodejs8
+%define scl_prefix rh-nodejs8-
+%endif
+
 Name:           docket
 Version:        0.2.1
 Release:        1%{?dist}
