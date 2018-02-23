@@ -13,6 +13,7 @@ BuildArch:      noarch
 BuildRequires:  python-devel
 %{?systemd_requires}
 BuildRequires:  systemd
+BuildRequires:  npm
 Requires(pre):  shadow-utils
 
 Requires:       python2-flask
@@ -35,7 +36,11 @@ Docket provides an HTTP API layer for Google Stenographer, allowing RESTful API 
 %setup -q
 
 %build
-# Nothing to do here
+
+# Build ReactJS frontend
+cd frontend
+npm install
+npm run build
 
 %install
 rm -rf %{buildroot}
@@ -45,13 +50,13 @@ DESTDIR=%{buildroot}
 mkdir -p %{buildroot}/%{_sysconfdir}/{docket,sysconfig}
 mkdir -p %{buildroot}/%{_docketdir}
 mkdir -p %{buildroot}/%{_docketdir}/docket
+mkdir -p %{buildroot}/%{_docketdir}/frontend
 mkdir -p %{buildroot}/%{_tmpfilesdir}
 mkdir -p %{buildroot}/%{_unitdir}
 mkdir -p %{buildroot}/%{_presetdir}
 
 # Install docket files
 cp -a docket/. %{buildroot}/%{_docketdir}/docket/.
-# ? FIXME - is this right?
 cp -a conf/. %{buildroot}/%{_sysconfdir}/docket/.
 install -p -m 644 systemd/docket.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket.socket  %{buildroot}%{_unitdir}/
@@ -61,6 +66,9 @@ install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}%{_tmpfilesdir}/%{nam
 install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/docket/
 install -p -m 644 systemd/docket.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 install -p -m 644 systemd/docket.preset %{buildroot}%{_presetdir}/95-%{name}.preset
+
+# Install frontend
+cp -a frontend/dist/. %{buildroot}/%{_docketdir}/frontend/.
 
 install -d -m 0755 %{buildroot}/run/%{name}/
 install -d -m 0755 %{buildroot}%{_localstatedir}/spool/%{name}/
