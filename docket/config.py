@@ -1,3 +1,23 @@
+##
+## Copyright (c) 2017, 2018 RockNSM.
+##
+## This file is part of RockNSM
+## (see http://rocknsm.io).
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##   http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing,
+## software distributed under the License is distributed on an
+## "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+## KIND, either express or implied.  See the License for the
+## specific language governing permissions and limitations
+## under the License.
+##
+##
 from __future__ import print_function
 # A central location for the config dictionary
 #   see application for initialization
@@ -5,6 +25,7 @@ import redis
 import yaml
 import os
 import logging
+import sys
 
 levels = {
     'debug'  :logging.DEBUG,
@@ -43,6 +64,8 @@ class Config:
         'LOG_FILE_LEVEL': 'info',
         'STENOGRAPHER_INSTANCES': { 'host': '127.0.0.1', 'sensor': 'sensor-1', 'port': 1234, 'key': '/etc/stenographer/certs/client_key.pem', 'cert': '/etc/stenographer/certs/client_cert.pem', 'ca': '/etc/stenographer/certs/ca_cert.pem' },
         'DOCKET_NO_REDIS': False,
+        'WEB_ROOT': '/api',
+        'PCAP_WEB_ROOT': '/results'
     }
     _default = config.copy()
     _redis = None
@@ -65,10 +88,10 @@ class Config:
              (fs_root, 'etc',),             # /etc/filename
             ]
         )
-        for f,p in paths:
+        for f, p in paths:
             if not f:
                 continue
-            filepath = os.path.join(*(p + (f,)) )
+            filepath = os.path.join(*(p + (f,)))
             filepath = os.path.expanduser(filepath)
             if os.path.isfile(filepath):
                 break
@@ -88,14 +111,25 @@ class Config:
 
         # I'm having the hardest time getting logging to 'work'
         # TODO have exceptions output in LOG_FILE... (WHY NOT)
-        cls.loggers['docket']= logging.getLogger(Config.get('LOGGER_NAME','docket'))
+        cls.loggers['docket'] = logging.getLogger(
+            Config.get('LOGGER_NAME', 'docket'))
+
+        # Add streamhandler as default
+        _logger = cls.loggers['docket']
+        _console = logging.StreamHandler(sys.stdout)
+        _console.setLevel(log_level(cls.config['LOG_LEVEL']))
+        _console.setFormatter(
+            logging.Formatter(fmt=cls.config['LOG_MSG_FORMAT'],
+                              datefmt=cls.config['LOG_DATE_FORMAT'])
+        )
+        _logger.addHandler(_console)
+
         cls.loggers[None] = logging.getLogger()
         if isinstance(logger, logging.Logger):
             cls.loggers['docket'] = logger
         if flask_app:
             flask_app.config.from_mapping(cls.config)
             cls.loggers['flask'] = flask_app.logger
-            #cls.config = flask_app.config
 
         cls._setup_loggers()
 
@@ -104,9 +138,11 @@ class Config:
     @classmethod
     def _setup_loggers(cls):
         cls.log_level = log_level(cls.config['LOG_LEVEL'])
-        cls.formatter = logging.Formatter(fmt=cls.config['LOG_MSG_FORMAT'],
-                                          datefmt=cls.config['LOG_DATE_FORMAT'])
+        cls.formatter = logging.Formatter(
+                            fmt=cls.config['LOG_MSG_FORMAT'],
+                            datefmt=cls.config['LOG_DATE_FORMAT'])
 
+        handler = None
         handler = None
         if not cls.file_handler and cls.get('LOG_FILE', None):
             from logging.handlers import TimedRotatingFileHandler
@@ -116,12 +152,14 @@ class Config:
                 backupCount=cls.config['LOG_FILE_BACKUPS'],
                 utc=cls.config['LOG_DATE_UTC']
             )
-            file_fmt = logging.Formatter(fmt=cls.config['LOG_FILE_MSG_FORMAT'],
-                                         datefmt=cls.config['LOG_FILE_DATE_FORMAT'])
+            file_fmt = logging.Formatter(
+                            fmt=cls.config['LOG_FILE_MSG_FORMAT'],
+                            datefmt=cls.config['LOG_FILE_DATE_FORMAT'])
             handler.setLevel(log_level(cls.config['LOG_FILE_LEVEL']))
             handler.setFormatter(file_fmt)
             cls.file_handler = handler
-            logging.info("Logging to {}:{}".format(cls.config['LOG_FILE'], cls.config['LOG_FILE_LEVEL']))
+            logging.info("Logging to {}:{}".format(
+                cls.config['LOG_FILE'], cls.config['LOG_FILE_LEVEL']))
 
         for l in cls.loggers.values():
             l.setLevel(cls.log_level)
