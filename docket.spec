@@ -13,7 +13,7 @@ BuildArch:      noarch
 BuildRequires:  python-devel
 %{?systemd_requires}
 BuildRequires:  systemd
-BuildRequires:  npm
+BuildRequires:  %{?scl_prefix}npm
 Requires(pre):  shadow-utils
 
 Requires:       python2-flask
@@ -36,11 +36,13 @@ Docket provides an HTTP API layer for Google Stenographer, allowing RESTful API 
 %setup -q
 
 %build
-
-# Build ReactJS frontend
 cd frontend
+
+%{?scl:scl enable %{scl} "}
+# Build ReactJS frontend
 npm install
 npm run build
+%{?scl: "}
 
 %install
 rm -rf %{buildroot}
@@ -124,9 +126,9 @@ exit 0
 * Mon Jan 08 2018 Jeffrey Kwasha <JeffKwasha@users.noreply.github.com> 0.2.1-1
 - Requests are queued to improve stenographer performance and squash docket CPU spikes
 - Queries now return JSON: query, id, url where the capture will be created, queue time.
-- Parallelized queries to stenographer instances 
+- Parallelized queries to stenographer instances
 - New API: /urls - a JSON dictionary of id : url for all available captures
-- New API: /ids - a JSON list of ids for active and completed queries 
+- New API: /ids - a JSON list of ids for active and completed queries
 - New API: /status - JSON: the state of active and completed queries
 - New API: /cleanup - ignores CLEANUP_PERIOD and runs immediately
 - New GUI: /gui - an HTML form with a dynamic stack of queries made with links
