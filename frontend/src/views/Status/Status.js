@@ -103,9 +103,6 @@ class Status extends Component {
   }
 
   render() {
-    const prettyBytes = require('pretty-bytes');
-    /* Use jQuery to retrieve job data */
-
     return (
       <div className="animated fadeIn">
         <Card>
@@ -118,7 +115,7 @@ class Status extends Component {
           <dt>Download Result</dt>
           <dd>{ (this.state.url !== null) ?
                 <div><a href={this.state.url}>Get PCAP</a>
-                <p>({ prettyBytes(this.state.resultSize) })</p></div> :
+                <p>({ this.state.resultSize } bytes)</p></div> :
                 <div>Unavailable</div> }</dd>
         </dl>
         <h3>Details</h3>
