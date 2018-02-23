@@ -1,6 +1,6 @@
 %global _docketdir /opt/rocknsm/docket
 
-%if 0%{?epel} <= 7
+%if 0%{?epel}
 %define scl rh-nodejs8
 %define scl_prefix rh-nodejs8-
 %endif
