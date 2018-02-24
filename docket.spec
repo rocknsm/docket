@@ -127,7 +127,7 @@ exit 0
 %ghost /run/%{name}/%{name}.socket
 %ghost %{_localstatedir}/log/%{name}/%{name}.log
 
-%doc README.md LICENSE docs/
+%doc README.md LICENSE.txt docs/
 %doc contrib/nginx-example.conf
 %doc contrib/docket_lighttpd_scgi.conf
 %doc contrib/docket_lighttpd_vhost.conf
