@@ -1,5 +1,10 @@
 %global _docketdir /opt/rocknsm/docket
 
+%if 0%{?epel}
+%define scl rh-nodejs8
+%define scl_prefix rh-nodejs8-
+%endif
+
 Name:           docket
 Version:        0.2.1
 Release:        1%{?dist}
@@ -13,6 +18,7 @@ BuildArch:      noarch
 BuildRequires:  python-devel
 %{?systemd_requires}
 BuildRequires:  systemd
+BuildRequires:  %{?scl_prefix}npm
 Requires(pre):  shadow-utils
 
 Requires:       python2-flask
@@ -35,7 +41,13 @@ Docket provides an HTTP API layer for Google Stenographer, allowing RESTful API 
 %setup -q
 
 %build
-# Nothing to do here
+cd frontend
+
+%{?scl:scl enable %{scl} "}
+# Build ReactJS frontend
+npm install
+npm run build
+%{?scl: "}
 
 %install
 rm -rf %{buildroot}
@@ -45,13 +57,13 @@ DESTDIR=%{buildroot}
 mkdir -p %{buildroot}/%{_sysconfdir}/{docket,sysconfig}
 mkdir -p %{buildroot}/%{_docketdir}
 mkdir -p %{buildroot}/%{_docketdir}/docket
+mkdir -p %{buildroot}/%{_docketdir}/frontend
 mkdir -p %{buildroot}/%{_tmpfilesdir}
 mkdir -p %{buildroot}/%{_unitdir}
 mkdir -p %{buildroot}/%{_presetdir}
 
 # Install docket files
 cp -a docket/. %{buildroot}/%{_docketdir}/docket/.
-# ? FIXME - is this right?
 cp -a conf/. %{buildroot}/%{_sysconfdir}/docket/.
 install -p -m 644 systemd/docket.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket.socket  %{buildroot}%{_unitdir}/
@@ -61,6 +73,9 @@ install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}%{_tmpfilesdir}/%{nam
 install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/docket/
 install -p -m 644 systemd/docket.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 install -p -m 644 systemd/docket.preset %{buildroot}%{_presetdir}/95-%{name}.preset
+
+# Install frontend
+cp -a frontend/dist/. %{buildroot}/%{_docketdir}/frontend/.
 
 install -d -m 0755 %{buildroot}/run/%{name}/
 install -d -m 0755 %{buildroot}%{_localstatedir}/spool/%{name}/
@@ -116,9 +131,9 @@ exit 0
 * Mon Jan 08 2018 Jeffrey Kwasha <JeffKwasha@users.noreply.github.com> 0.2.1-1
 - Requests are queued to improve stenographer performance and squash docket CPU spikes
 - Queries now return JSON: query, id, url where the capture will be created, queue time.
-- Parallelized queries to stenographer instances 
+- Parallelized queries to stenographer instances
 - New API: /urls - a JSON dictionary of id : url for all available captures
-- New API: /ids - a JSON list of ids for active and completed queries 
+- New API: /ids - a JSON list of ids for active and completed queries
 - New API: /status - JSON: the state of active and completed queries
 - New API: /cleanup - ignores CLEANUP_PERIOD and runs immediately
 - New GUI: /gui - an HTML form with a dynamic stack of queries made with links

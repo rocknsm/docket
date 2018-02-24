@@ -1,3 +1,23 @@
+##
+## Copyright (c) 2017, 2018 RockNSM.
+##
+## This file is part of RockNSM
+## (see http://rocknsm.io).
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##   http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing,
+## software distributed under the License is distributed on an
+## "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+## KIND, either express or implied.  See the License for the
+## specific language governing permissions and limitations
+## under the License.
+##
+##
 # Query - A Class for tracking queries through the process and interfacing with them
 # QueryRequest - implements Flask Restful to fill requests with formatted data
 from collections import namedtuple
@@ -6,8 +26,9 @@ import re
 import os
 
 from werkzeug.exceptions import BadRequest
-from flask import jsonify, request, render_template, make_response
+from flask import jsonify, request, render_template, Response, make_response
 from flask_restful import Resource, inputs, reqparse
+from json import dumps
 import yaml
 import redis
 
@@ -21,7 +42,7 @@ Event = namedtuple('Event', ['datetime', 'name', 'msg', 'state'])
 Result = namedtuple('Result', ['datetime', 'name', 'msg', 'state', 'value'])
 
 _REDIS_PREFIX = 'Docket.Query.'
-_DATE_FORMAT = Config.get('DATE_FORMAT', "%Y%jT%H:%M:%S")
+_DATE_FORMAT = Config.get('DATE_FORMAT', "%Y-%m-%dT%H:%M:%S")
 _INSTANCES = Config.get('STENOGRAPHER_INSTANCES')
 _SENSORS = []
 
@@ -31,24 +52,37 @@ for steno in _INSTANCES:
 
 Config.setdefault('TIME_WINDOW', 60, minval=1)
 
+
 def enforce_time_window(time):
     """ given a datetime, return the start time of it's TIME_WINDOW
         aka - 'round down' a time into our TIME_WINDOW
     """
     if not Config.get('TIME_WINDOW'):
         return time
-    return from_epoch(   epoch(time)
+    return from_epoch(epoch(time)
                       // Config.get('TIME_WINDOW')
-                      *  Config.get('TIME_WINDOW'))
+                      * Config.get('TIME_WINDOW'))
+
 
 def _get_request_nfo():
     """ grab client info for logging, etc..
-        getting this information might depend on the stack, This function is designed for nginx
+        getting this information might depend on the stack,
+        This function is designed for nginx
     """
     return RequestInfo(ip = request.environ.get('REMOTE_ADDR', request.remote_addr),
                        port = request.environ.get('REMOTE_PORT', '_UNKNOWN_'),
                        agent= request.environ.get('HTTP_USER_AGENT', '_UNKNOWN_')
                       )
+
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+    from datetime import datetime, date
+
+    if isinstance(obj, (datetime, date)):
+        return obj.strftime(_DATE_FORMAT)[:-3]
+    raise TypeError("Type %s not serializable" % type(obj))
+
 
 class Query:
     """ Query               handles metadata and actions to process docket queries:
@@ -218,7 +252,7 @@ class Query:
 
     def time_requested(self):
         """ returns an ISO date (ordinal) - when the query was requested """
-        return self.queried.strftime(_DATE_FORMAT)
+        return self.queried.strftime(_DATE_FORMAT)[:-3]
 
     @property
     def yaml_path(self):
@@ -228,7 +262,7 @@ class Query:
     def yaml_path_for_id(cls, q_id):
         """  path used to record this query as yaml """
         return cls.job_path_for_id(q_id, Config.get('QUERY_FILE', 'query') + '.yaml')
- 
+
     def path(self, path):
         return self.job_path_for_id(self._id, path)
 
@@ -298,14 +332,23 @@ class Query:
                    'net': 0,
                    'port': 0}
         for host in sorted(q_fields['host']):
+            Config.logger.debug("Parsing host: %s", host)
+            if len(host) == 0:
+                continue
+
             validate_ip(host)
             qry_str.append('host {}'.format(host))
             weights['ip'] += 1
         for net in sorted(q_fields['net']):
+            Config.logger.debug("Parsing net: %s", net)
+            if len(net) == 0:
+                continue
+
             validate_net(net)
             qry_str.append('net {}'.format(net))
             weights['net'] += 1
         for port in sorted(q_fields['port']):
+            Config.logger.debug("Parsing port: %s", port)
             try:
                 if 0 < int(port) < 2**16:
                     qry_str.append('port {}'.format(int(port)))
@@ -337,11 +380,16 @@ class Query:
                 raise BadRequest("can't parse duration: {}".format(q_fields['before-ago']))
             end = enforce_time_window(self.query_time - dur)
         if q_fields['after']:
+            print "Processing 'after': {}".format(q_fields['after'])
             dur = parse_duration(q_fields['after'])
+            print "Duration {}".format(dur)
             if dur:
                 start = enforce_time_window(self.query_time - dur)
+                print "Start w/ duration: {}".format(start)
             else:
                 start = enforce_time_window(inputs.datetime_from_iso8601(q_fields['after']).replace(tzinfo=None))
+                print "Start w/o duration: {}".format(start)
+
         if q_fields['before']:
             dur = parse_duration(q_fields['before'])
             if dur:
@@ -437,7 +485,12 @@ class Query:
         return columns
 
     def json(self):
-        return { 'id': self.id, 'state': self.state, 'url': self.pcap_url, 'time' : self.time_requested(), 'query': self.query}
+        return { 'id': self.id,
+                 'state': self.state,
+                 'query': self.query,
+                 'url': self.pcap_url,
+                 'time' : self.time_requested(),
+                 'query': self.query}
 
     def enqueue(self):
         """ queue this query in celery for fulfillment """
@@ -453,7 +506,7 @@ class Query:
 
     @staticmethod
     def pcap_url_for_id(id):
-        return "{}/{}/{}.pcap".format(Config.get('WEB_ROOT', ''), id, Config.get('MERGED_NAME'))
+        return "{}/{}/{}.pcap".format(Config.get('PCAP_WEB_ROOT', '/results'), id, Config.get('MERGED_NAME'))
 
     @property
     def pcap_path(self):
@@ -501,28 +554,35 @@ class Query:
         """ return a list of query IDs that are still available on the drive
             the queries can be in various states of processing
         """
-        return [ f for f in readdir(Config.get('SPOOL_DIR'))
-                if (f not in ['.', '..']) and
-                    (not ids or f in ids) and
-                    (len(f) >= 32) ]
+        return [
+            f for f in readdir(Config.get('SPOOL_DIR'))
+            if (f not in ['.', '..']) and
+            (not ids or f in ids) and
+            (len(f) >= 32)
+        ]
 
     def status(self, full=False):
         """ describe this query's state in detail """
         if self.events:
             status = {
                 'state': self.state,
-                'requests': { r.name: (r.datetime.strftime(_DATE_FORMAT), r.msg, r.state, r.value)
-                             for r in self.events
-                             if type(r) is Result
-                            },
-                'events': [ (e.datetime.strftime(_DATE_FORMAT), e.name, e.msg, e.state)
-                           for e in self.events
-                           if full or e.state
-                          ],
-                'successes': [ str(e) for e in self.successes],
+                'requests': {
+                    r.name: r._asdict()
+                    for r in self.events
+                    if type(r) is Result
+                },
+                'events': [
+                    e._asdict()
+                    for e in self.events
+                    if full or e.state
+                ],
+                'successes': [
+                    e._asdict()
+                    for e in self.successes
+                ],
             }
             return status
-        return { 'state': self.state }
+        return {'state': self.state}
 
     @staticmethod
     def status_for_ids(ids):
@@ -719,7 +779,7 @@ class QueryRequest(Resource):
         low = space_low()
         if low:
             from tasks import cleanup
-            cleanup.apply_async(queue='io', kwargs={'force':True})
+            cleanup.apply_async(queue='io', kwargs={'force': True})
             Config.logger.error(low)
             return low, 413
 
@@ -730,7 +790,17 @@ class QueryRequest(Resource):
             return str(e), 400
         except ValueError as e:
             return str(e), 400
-        return q.enqueue()
+
+        result = q.enqueue()
+
+        r = Response(
+            response=dumps(result, default=json_serial),
+            status=302,
+            mimetype='application/json'
+        )
+        statusUrl = '/#/status/{}'.format(result['id'])
+        r.headers['Location'] = '{}'.format(statusUrl)
+        return r
 
 class RawRequest(Resource):
     """ This class handles RAW Stenographer Query requests. """
@@ -803,19 +873,23 @@ class ApiRequest(Resource):
             return stats
 
         elif api == "status":
-            return Query.status_for_ids(Query.get_unexpired(selected))
+            r = Response(
+                response=dumps(
+                    Query.status_for_ids(Query.get_unexpired(selected)),
+                    default=json_serial),
+                mimetype="application/json"
+                )
+            return r
 
         elif api == "clean" or api == 'cleanup':
             from tasks import cleanup
             cleanup.apply_async(queue='io', kwargs={'force':True})
             return "Cleanup queued"
 
-        elif api == "gui":
-            rsp = make_response(render_template('index.html', Query=Query))
-            rsp.headers['Content-Type'] = 'text/html; charset=utf-8'
-            return rsp
+        elif api == "jobs":
+            return Query.find({})
 
-        return "Unrecognized request: try /stats, /ids, /urls or POST a json encoded stenographer query"
+        return "Unrecognized request: try /stats, /ids, /urls, /jobs or POST a json encoded stenographer query"
 
     def post(self, api=None, selected=None):
         if api == 'find':
