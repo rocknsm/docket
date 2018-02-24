@@ -61,6 +61,7 @@ mkdir -p %{buildroot}/%{_docketdir}/frontend
 mkdir -p %{buildroot}/%{_tmpfilesdir}
 mkdir -p %{buildroot}/%{_unitdir}
 mkdir -p %{buildroot}/%{_presetdir}
+mkdir -p %{buildroot}/%{_localstatedir}/log/%{name}
 
 # Install docket files
 cp -a docket/. %{buildroot}/%{_docketdir}/docket/.
@@ -81,6 +82,7 @@ install -d -m 0755 %{buildroot}/run/%{name}/
 install -d -m 0755 %{buildroot}%{_localstatedir}/spool/%{name}/
 
 touch %{buildroot}/run/%{name}/%{name}.socket
+touch %{buildroot}/log/%{name}/%{name}.log
 
 %pre
 getent group %{name} >/dev/null || groupadd -r %{name}
@@ -118,9 +120,12 @@ exit 0
 %attr(-,docket,docket) /run/%{name}/
 %dir %{_localstatedir}/spool/%{name}/
 %attr(-,docket,docket) %{_localstatedir}/spool/%{name}/
+%dir %{_localstatedir}/log/%{name}/
+%attr(-,docket,docket) %{_localstatedir}/log/%{name}/
 
 # Add the systemd socket so it's removed on uninstall
 %ghost /run/%{name}/%{name}.socket
+%ghost %{_localstatedir}/log/%{name}/%{name}.log
 
 %doc README.md LICENSE docs/
 %doc contrib/nginx-example.conf
