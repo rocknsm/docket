@@ -19,10 +19,20 @@
     name: redis
     state: restarted
 
-- name: docket | restart docket celery
+- name: docket | seed random key
+  lineinfile:
+    path: /etc/docket/prod.yml
+    regexp: 'XX_NOT_A_SECRET_XX'
+    line: "SECRET_KEY: {{ docket_secret }}"
+    state: present
+
+- name: docket | restart docket celery services
   service:
-    name: docket-celery
+    name: "{{ item }}"
     state: restarted
+  with_items:
+    - docket-celery-io
+    - docket-celery-query
 
 - name: docket | restart docket uwsgi
   service:

@@ -1,0 +1,6 @@
+{
+  "name": "Query",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./Query.js"
+}

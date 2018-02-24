@@ -1,0 +1,116 @@
+{% extends "gui.html" %}
+{% block body %}
+<script>
+
+$(function() {
+	$('a#submit').bind('click', function() {
+		var controls = form.elements;
+		for (var i=0, iLen=controls.length; i<iLen; i++) {
+			if (controls[i].value == '')
+				controls[i].disabled = true;
+		}
+		uri = $( "form" ).serialize();
+
+		var json = getJSON('/uri/'+uri, 	host: $('input[name="hostsrc" TODO' ));
+		var content = [];
+
+        return { 'id': self.id, 'time' : self.time_requested(), 'query': self.query, 'url' : self.pcap_url }
+		for (var i = 0; i < json
+		// content = ...?
+		// $('element').prepend( content )
+</script>
+
+<form class="pure-form pure-form-aligned">
+    <fieldset>
+        <div class="pure-control-group">
+            <label for="host">Source IP</label>
+            <input name="host" id="host" type="text" placeholder="1.2.3.4">
+        </div>
+
+        <div class="pure-control-group">
+            <label for="host">Destination IP</label>
+            <input name="host" id="host" type="text" placeholder="4.3.2.1">
+        </div>
+
+        <div class="pure-control-group">
+            <label for="net">Network</label>
+            <input name="net" id="net" type="text" placeholder="1.0.0.0/8">
+            <span class="pure-form-message-inline">Specify an IP and CIDR mask.</span>
+        </div>
+<!-- port /-->
+        <div class="pure-control-group">
+            <label for="port">Source Port</label>
+            <input name="port" id="port" type="text" placeholder="8">
+        </div>
+
+        <div class="pure-control-group">
+            <label for="port">Destination Port</label>
+            <input name="port" id="port" type="text" placeholder="65535">
+        </div>
+<!-- proto-name /-->
+           <div class="pure-control-group">
+                <label for="proto-name">Protocol</label>
+                <select name="proto-name" id="proto-name">
+                    <option></option>
+                    <option>TCP</option>
+                    <option>UDP</option>
+                    <option>ICMP</option>
+                </select>
+            <span class="pure-form-message-inline">Leave blank for none. (Default)</span>
+            </div>
+<!-- proto /-->
+        <div class="pure-control-group">
+            <label for="proto">Protocol Number</label>
+            <input name="proto" id="proto" type="text" placeholder="6">
+            <span class="pure-form-message-inline">Limit PCAP to a protocol number.</span>
+        </div>
+
+<!-- before /-->
+        <div class="pure-control-group">
+            <label for="before">Before Absolute Time</label>
+            <input name="before" id="before" type="text" placeholder="yyyy-mm-ddTHH:MM:SSZ">
+            <span class="pure-form-message-inline">Specify a time in UTC RFC3339, like <code>2017-04-30T13:26:43Z</code>. Use this <b>or</b> the time range.</span>
+        </div>
+<!-- after /-->
+        <div class="pure-control-group">
+            <label for="after">After Absolute Time</label>
+            <input name="after" id="after" type="text" placeholder="yyyy-mm-ddTHH:MM:SSZ">
+            <span class="pure-form-message-inline">Specify a time in UTC RFC3339, like <code>2017-04-30T13:26:43Z</code>. Use this <b>or</b> the time range.</span>
+        </div>
+<!-- before-ago /-->
+        <div class="pure-control-group">
+            <label for="before-ago">Before Time Range</label>
+            <input name="before-ago" id="before-ago" type="text" placeholder="3h 45m">
+            <span class="pure-form-message-inline">Specify an integer with <code>m</code> (minutes) or <code>h</code> (hours).</span>
+        </div>
+<!-- after-ago /-->
+        <div class="pure-control-group">
+            <label for="after-ago">After Time Range</label>
+            <input name="after-ago" id="after-ago" type="text" placeholder="1h 1m 30s">
+            <span class="pure-form-message-inline">Specify an integer with <code>m</code> (minutes) or <code>h</code> (hours).</span>
+        </div>
+        <div class="pure-controls">
+            <label for="ignore" class="pure-checkbox">
+                <input name="ignore_limits" id="ignore-limits" type="checkbox"> ignore limits
+            </label>
+
+	    <a href=# id=submit>
+            <button class="pure-button pure-button-primary">Submit</button>
+	    </a>
+        </div>
+    </fieldset>
+</form>
+</body
+</html>
+
+<!--
+             'host': [],
+ +                'net' : [],
+ +                'port': [],
+ +                'proto': None,
+ +                'udp': None,
+ +                'tcp': None,
+ +                'icmp': None,
+ +                'before': None,
+ +                'after': None,
+/-->

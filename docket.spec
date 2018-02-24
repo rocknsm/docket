@@ -1,7 +1,12 @@
 %global _docketdir /opt/rocknsm/docket
 
+%if 0%{?epel}
+%define scl rh-nodejs8
+%define scl_prefix rh-nodejs8-
+%endif
+
 Name:           docket
-Version:        0.1.1
+Version:        0.2.1
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -13,11 +18,11 @@ BuildArch:      noarch
 BuildRequires:  python-devel
 %{?systemd_requires}
 BuildRequires:  systemd
+BuildRequires:  %{?scl_prefix}npm
 Requires(pre):  shadow-utils
 
 Requires:       python2-flask
 Requires:       python2-flask-restful
-Requires:       python-flask-script
 Requires:       python2-celery
 Requires:       python-redis
 Requires:       python-requests
@@ -36,7 +41,13 @@ Docket provides an HTTP API layer for Google Stenographer, allowing RESTful API 
 %setup -q
 
 %build
-# Nothing to do here
+cd frontend
+
+%{?scl:scl enable %{scl} "}
+# Build ReactJS frontend
+npm install
+npm run build
+%{?scl: "}
 
 %install
 rm -rf %{buildroot}
@@ -46,25 +57,32 @@ DESTDIR=%{buildroot}
 mkdir -p %{buildroot}/%{_sysconfdir}/{docket,sysconfig}
 mkdir -p %{buildroot}/%{_docketdir}
 mkdir -p %{buildroot}/%{_docketdir}/docket
+mkdir -p %{buildroot}/%{_docketdir}/frontend
 mkdir -p %{buildroot}/%{_tmpfilesdir}
 mkdir -p %{buildroot}/%{_unitdir}
 mkdir -p %{buildroot}/%{_presetdir}
+mkdir -p %{buildroot}/%{_localstatedir}/log/%{name}
 
 # Install docket files
 cp -a docket/. %{buildroot}/%{_docketdir}/docket/.
 cp -a conf/. %{buildroot}/%{_sysconfdir}/docket/.
 install -p -m 644 systemd/docket.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket.socket  %{buildroot}%{_unitdir}/
-install -p -m 644 systemd/docket-celery.service %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket-celery-query.service %{buildroot}%{_unitdir}/
+install -p -m 644 systemd/docket-celery-io.service %{buildroot}%{_unitdir}/
 install -p -m 644 systemd/docket-tmpfiles.conf %{buildroot}%{_tmpfilesdir}/%{name}.conf
 install -p -m 644 systemd/docket-uwsgi.ini %{buildroot}%{_sysconfdir}/docket/
 install -p -m 644 systemd/docket.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 install -p -m 644 systemd/docket.preset %{buildroot}%{_presetdir}/95-%{name}.preset
 
+# Install frontend
+cp -a frontend/dist/. %{buildroot}/%{_docketdir}/frontend/.
+
 install -d -m 0755 %{buildroot}/run/%{name}/
 install -d -m 0755 %{buildroot}%{_localstatedir}/spool/%{name}/
 
 touch %{buildroot}/run/%{name}/%{name}.socket
+touch %{buildroot}/log/%{name}/%{name}.log
 
 %pre
 getent group %{name} >/dev/null || groupadd -r %{name}
@@ -74,13 +92,13 @@ getent passwd %{name} >/dev/null || \
 exit 0
 
 %post
-%systemd_post docket.socket docket.service docket-celery.service
+%systemd_post docket.socket docket.service docket-celery-query.service docket-celery-io.service
 
 %preun
-%systemd_preun docket.socket docket.service docket-celery.service
+%systemd_preun docket.socket docket.service docket-celery-query.service docket-celery-io.service
 
 %postun
-%systemd_postun_with_restart docket.socket docket.service docket-celery.service
+%systemd_postun_with_restart docket.socket docket.service docket-celery-query.service docket-celery-io.service
 
 %files
 %defattr(0644, root, root, 0755)
@@ -102,9 +120,12 @@ exit 0
 %attr(-,docket,docket) /run/%{name}/
 %dir %{_localstatedir}/spool/%{name}/
 %attr(-,docket,docket) %{_localstatedir}/spool/%{name}/
+%dir %{_localstatedir}/log/%{name}/
+%attr(-,docket,docket) %{_localstatedir}/log/%{name}/
 
 # Add the systemd socket so it's removed on uninstall
 %ghost /run/%{name}/%{name}.socket
+%ghost %{_localstatedir}/log/%{name}/%{name}.log
 
 %doc README.md LICENSE docs/
 %doc contrib/nginx-example.conf
@@ -112,6 +133,21 @@ exit 0
 %doc contrib/docket_lighttpd_vhost.conf
 
 %changelog
+* Mon Jan 08 2018 Jeffrey Kwasha <JeffKwasha@users.noreply.github.com> 0.2.1-1
+- Requests are queued to improve stenographer performance and squash docket CPU spikes
+- Queries now return JSON: query, id, url where the capture will be created, queue time.
+- Parallelized queries to stenographer instances
+- New API: /urls - a JSON dictionary of id : url for all available captures
+- New API: /ids - a JSON list of ids for active and completed queries
+- New API: /status - JSON: the state of active and completed queries
+- New API: /cleanup - ignores CLEANUP_PERIOD and runs immediately
+- New GUI: /gui - an HTML form with a dynamic stack of queries made with links
+- More helpful error messages and better 'front-end' request validation.
+- improved cleanup - query expiration is configurable by time, free space, frequency
+- improved logging and error handling
+- config options now understand 'capacity' ('2MB') and 'duration' ('30s') depending on the option
+- Result captures are served directly by nginx
+
 * Fri Dec 01 2017 Derek Ditch <derek@rocknsm.io> 0.1.1-1
 - Fixes lingering permission issues with systemd. (derek@rocknsm.io)
 

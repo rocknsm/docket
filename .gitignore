@@ -92,3 +92,30 @@ ENV/
 
 # Random files
 *.bak
+
+# Vim files
+.*.un~
+*~
+.*.swo
+.*.swp
+.swp
+
+## Frontend
+
+# dependencies
+node_modules
+package-lock.json
+
+# testing
+coverage
+
+# production
+dist
+
+# misc
+.DS_Store
+Thumbs.db
+.env
+.idea
+npm-debug.log
+compilation-stats.json

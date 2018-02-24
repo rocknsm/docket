@@ -18,8 +18,11 @@ docket_session_cookie: DOCKET_SESSION
 docket_sendfile: true
 docket_logger: docket
 docket_celery_url: redis://localhost:6379
-docket_spool_dir: /var/spool/docket/
+docket_spool_dir: /var/spool/docket
+docket_frontend_dir: /opt/rocknsm/docket/frontend
 docket_uwsgi_socket: /run/docket/docket.socket
+docket_no_redis: false
+docket_long_ago: 24h
 
 # Web server config
 docket_tls: true

@@ -32,7 +32,7 @@ Docket does not currently have a hard dependency on `nginx` because you could fe
 
 ## Configuration
 Docket is configured in a simple YAML file located at
-`/etc/docket/prod.yaml`. Docket knows to read this file on startup from the `APP_CONFIG` variable stored in `/etc/sysconfig/docket`.
+`/etc/docket/prod.yaml`. Docket knows to read this file on startup from the `DOCKET_CONF` variable stored in `/etc/sysconfig/docket`.
 
 Now, open the `prod.yaml` file and make any necessary edits. Likely all you should change here is the `SECRET_KEY` to something random and unique per installation. See the [Flask docs](http://flask.pocoo.org/docs/0.12/api/#flask.Flask.secret_key) for more information.
 
