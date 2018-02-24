@@ -6,7 +6,7 @@
 %endif
 
 Name:           docket
-Version:        0.2.1
+Version:        1.0.0
 Release:        1%{?dist}
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -133,6 +133,12 @@ exit 0
 %doc contrib/docket_lighttpd_vhost.conf
 
 %changelog
+* Fri Feb 23 2018 Derek Ditch <derek@rocknsm.io> 1.0.0-1
+- Better concurrency & new UI (#22)
+- Update docket configuration path (#17) (anlx-sw@users.noreply.github.com)
+- Checked in Vagrantfile for testing (derek@rocknsm.io)
+- Lots of bugs squashed. Probably more introduced. ¯\_(ツ)_/¯
+
 * Mon Jan 08 2018 Jeffrey Kwasha <JeffKwasha@users.noreply.github.com> 0.2.1-1
 - Requests are queued to improve stenographer performance and squash docket CPU spikes
 - Queries now return JSON: query, id, url where the capture will be created, queue time.
