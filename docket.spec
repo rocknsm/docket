@@ -82,7 +82,7 @@ install -d -m 0755 %{buildroot}/run/%{name}/
 install -d -m 0755 %{buildroot}%{_localstatedir}/spool/%{name}/
 
 touch %{buildroot}/run/%{name}/%{name}.socket
-touch %{buildroot}/log/%{name}/%{name}.log
+touch %{buildroot}/%{_localstatedir}/log/%{name}/%{name}.log
 
 %pre
 getent group %{name} >/dev/null || groupadd -r %{name}
