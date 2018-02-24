@@ -6,8 +6,8 @@
 %endif
 
 Name:           docket
-Version:        1.0.0
-Release:        1%{?dist}
+Version:        1.0.1
+Release:        2
 Summary:        A Python HTTP API for Google Stenographer
 
 License:        BSD
@@ -133,6 +133,9 @@ exit 0
 %doc contrib/docket_lighttpd_vhost.conf
 
 %changelog
+* Fri Feb 23 2018 Derek Ditch <derek@rocknsm.io> 1.0.1-2
+- Fixed typo in the log path (derek@rocknsm.io)
+
 * Fri Feb 23 2018 Derek Ditch <derek@rocknsm.io> 1.0.0-1
 - Better concurrency & new UI (#22)
 - Update docket configuration path (#17) (anlx-sw@users.noreply.github.com)
