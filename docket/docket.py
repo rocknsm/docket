@@ -22,12 +22,14 @@
 from application import Application
 import os
 
+from reverseproxied import ReverseProxied
+
 my_app = Application(environment=os.environ)
 celery = my_app.celery()
 
 import tasks
 
-app = my_app.flask_app
+app = ReverseProxied(my_app.flask_app)
 if __name__ == '__main__':
     app.logger.info("Running {}".format(app.flask_app.name))
     app.run()
