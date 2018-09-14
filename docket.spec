@@ -29,7 +29,7 @@ Requires:       python-requests
 Requires:       python2-tonyg-rfc3339
 
 Requires:       uwsgi
-Requires:       uwsgi-plugin-python
+Requires:       uwsgi-plugin-python2
 
 Requires:       wireshark
 Requires:       redis
