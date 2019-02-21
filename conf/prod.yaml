@@ -23,6 +23,7 @@ CELERY_URL: redis://localhost:6379
 #           http://HOST:PORT/foo/stats, http://HOST:PORT/foo/uri/host/1.2.3.4
 WEB_ROOT: /api
 PCAP_WEB_ROOT: /results
+UI_WEB_ROOT: /
 
 # ==== Logging ====
 #LOGGER_NAME: docket

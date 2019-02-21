@@ -798,7 +798,7 @@ class QueryRequest(Resource):
             status=302,
             mimetype='application/json'
         )
-        statusUrl = '/#/status/{}'.format(result['id'])
+        statusUrl = '{}/#/status/{}'.format(Config.get('UI_WEB_ROOT',''), result['id'])
         r.headers['Location'] = '{}'.format(statusUrl)
         return r
 

@@ -15,13 +15,14 @@ TESTING: true
 CELERY_URL: redis://localhost:6379
 
 # ==== Basic Docket Configuration ====
-# SPOOL_DIR where captures are saved and served 
+# SPOOL_DIR where captures are saved and served
 #           configure the webserver to serve SPOOL_DIR/[a-z0-9-]{32,}/MERGED_NAME.pcap
 #SPOOL_DIR: /var/spool/docket/
 
 # WEB_ROOT  the base url for all docket requests: default is unset
 #           http://HOST:PORT/foo/stats, http://HOST:PORT/foo/uri/host/1.2.3.4
-#WEB_ROOT: /foo 
+#WEB_ROOT: /foo
+UI_WEB_ROOT: /
 
 # ==== Logging ====
 LOGGER_NAME: docket
@@ -58,7 +59,7 @@ EMPTY_RESULT: 25B
 #LONG_AGO: 24h
 
 # ==== Timeout ====
-# TIMEOUTs      - Docket queries will fail if stenoboxes are unresponsive. 
+# TIMEOUTs      - Docket queries will fail if stenoboxes are unresponsive.
 #                 For each stenobox instance:
 #                   Docket remembers the last time it was idle. IDLE_TIME
 #                   If it is not Docket waits IDLE_SLEEP, then requests stats, repeat if not idle
@@ -83,7 +84,7 @@ LOCK_TIMEOUT: 2.0
 
 
 # WEIGHTS       'Fat Finger' protection
-#               - request 'weight' can be estimated to prevent clogging up the system.  
+#               - request 'weight' can be estimated to prevent clogging up the system.
 #               - Estimate the amount of data in the system (total buffered packet data)
 #               - Pick a threshold for a single request 1% * (TOTAL / 8 hours / 60 minutes / 5 requests per minute)
 #               - IPs  - the number of (active) IPs captured
