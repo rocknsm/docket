@@ -6,7 +6,7 @@
 %endif
 
 Name:           docket
-Version:        1.0.2
+Version:        1.0.3
 Release:        1
 Summary:        A Python HTTP API for Google Stenographer
 
@@ -133,6 +133,9 @@ exit 0
 %doc contrib/docket_lighttpd_vhost.conf
 
 %changelog
+* Thu Feb 21 2019 Derek Ditch <derek@rocknsm.io> 1.0.3-1
+- Fix issue where redirect goes to wrong root. (derek@rocknsm.io)
+
 * Thu Feb 21 2019 Derek Ditch <derek@rocknsm.io> 1.0.2-1
 - Fixed bug preventing usage of URI api when webroot was changed
 
