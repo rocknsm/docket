@@ -6,8 +6,8 @@
 %endif
 
 Name:           docket
-Version:        1.0.1
-Release:        4
+Version:        1.0.2
+Release:        1
 Summary:        A Python HTTP API for Google Stenographer
 
 License:        BSD
@@ -133,6 +133,9 @@ exit 0
 %doc contrib/docket_lighttpd_vhost.conf
 
 %changelog
+* Thu Feb 21 2019 Derek Ditch <derek@rocknsm.io> 1.0.2-1
+- Fixed bug preventing usage of URI api when webroot was changed
+
 * Fri Sep 14 2018 Derek Ditch <derek@rocknsm.io> 1.0.1-4
 - Bumped uwsgi-plugin-python depedency to match upstream pkg as uwsgi-plugin-python2
 
