@@ -32,7 +32,7 @@ class About extends Component {
           </CardHeader>
           <CardBody>
           Docket was created as part of the <a href="http://rocknsm.io">RockNSM
-          project</a>. It provides a front-end to the execellent <a
+          project</a>. It provides a front-end to the excellent <a
            href="http://github.com/google/stenographer/">Google Stenographer
           </a>. For more information, visit the Docket <a
           href="https://github.com/rocknsm/docket/">GitHub</a> page.
