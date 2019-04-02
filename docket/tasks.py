@@ -145,7 +145,8 @@ def query_task(query_tuple, headers=None):
     except OSError:
         # NOTE: python 3 throws the subclass: FileExistsError
         Config.logger.info("query: duplicate request {}".format(query.id))
-        os.utime(query.job_path, times=None)
+        # Python2 doesn't allow keyword arguments here
+        os.utime(query.job_path, None)
         return
 
     threads = []
