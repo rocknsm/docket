@@ -19,4 +19,4 @@ NotifyAccess=all
 WorkingDirectory=/opt/rocknsm/docket
 
 [Install]
-WantedBy=multiuser.target
+WantedBy=multi-user.target
