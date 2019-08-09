@@ -411,6 +411,10 @@ class Query:
                                                                      jsonify(q_fields)))
                 raise BadRequest("Request parameters exceed weight: %d/%d" %(req_weight, Query.WEIGHTS['limit']))
 
+        # Stenographer issue 132 Query buffer of 2 minutes
+        start += timedelta(seconds=-120)
+        end += timedelta(seconds=120)
+
         qry_str.append('after {}'.format(start.strftime(ISOFORMAT)))
         qry_str.append('before {}'.format(end.strftime(ISOFORMAT)))
 
