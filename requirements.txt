@@ -2,7 +2,7 @@ amqp==2.2.2
 billiard==3.5.0.3
 celery==4.1.0
 click==6.7
-Flask==0.12.2
+Flask==1.0
 itsdangerous==0.24
 Jinja2==2.10
 kombu==4.1.0
