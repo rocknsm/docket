@@ -24,7 +24,7 @@ pyOpenSSL==17.0.0
 pyparsing==2.2.0
 python-dateutil==2.6.0
 pytz==2017.2
-PyYAML==3.12
+PyYAML==5.4
 redis==2.10.5
 requests==2.17.3
 simplejson==3.10.0
