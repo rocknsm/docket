@@ -3,7 +3,7 @@ aniso8601==1.2.1
 appdirs==1.4.3
 asn1crypto==0.22.0
 billiard==3.5.0.2
-celery==4.0.2
+celery==5.2.2
 certifi==2017.4.17
 cffi==1.10.0
 chardet==3.0.4
